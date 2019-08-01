@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using OsmSharp.API;
-using OsmSharp.Changesets;
-using OsmSharp.Tags;
 using OsmSharp.Streams;
 using OsmSharp.Streams.Complete;
 using OsmSharp.Complete;
+using System.IO;
 using System.Xml.Serialization;
-using OsmSharp.IO.Xml;
 
 namespace OsmSharp.IO.API
 {
@@ -25,6 +20,7 @@ namespace OsmSharp.IO.API
 	// cite sources/licenses
 	// track data transfered
 	// fix namespace
+	// Make sure Client covers every API action
 	public class Client
 	{
 		/// <summary>
@@ -36,12 +32,34 @@ namespace OsmSharp.IO.API
 		/// </example>
 		protected readonly string BaseAddress;
 
+		private string _mapAddress => BaseAddress + "map?bbox=:left,:bottom,:right,:top";
 		private string _elementAddress => BaseAddress + ":type/:id";
 		private string _completeElementAddress => BaseAddress + ":type/:id/full";
 
 		public Client(string baseAddress)
 		{
 			BaseAddress = baseAddress;
+		}
+
+		public async Task<Osm> GetMap(Bounds bound)
+		{
+			using (var client = new HttpClient())
+			{
+				var address = _mapAddress
+					.Replace(":left", bound.MinLongitude.Value.ToString("F")) // prevent scientific notation
+					.Replace(":bottom", bound.MinLatitude.Value.ToString("F"))
+					.Replace(":right", bound.MaxLongitude.Value.ToString("F"))
+					.Replace(":top", bound.MaxLatitude.Value.ToString("F"));
+				var response = await client.GetAsync(address);
+				if (!response.IsSuccessStatusCode)
+				{
+					throw new Exception($"Unable to retrieve map: {response.StatusCode}-{response.ReasonPhrase}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var osm = FromContent(stream);
+				return osm;
+			}
 		}
 
 		public async Task<ICompleteOsmGeo> GetElement(string elementId, string type)
@@ -117,26 +135,10 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		protected Osm GetOsmRequest(string changesetId, OsmGeo osmGeo)
+		protected Osm FromContent(Stream stream)
 		{
-			var osm = new Osm();
-			long changeSetId = long.Parse(changesetId);
-			switch (osmGeo.Type)
-			{
-				case OsmGeoType.Node:
-					osm.Nodes = new[] { osmGeo as Node };
-					osm.Nodes.First().ChangeSetId = changeSetId;
-					break;
-				case OsmGeoType.Way:
-					osm.Ways = new[] { osmGeo as Way };
-					osm.Ways.First().ChangeSetId = changeSetId;
-					break;
-				case OsmGeoType.Relation:
-					osm.Relations = new[] { osmGeo as Relation };
-					osm.Relations.First().ChangeSetId = changeSetId;
-					break;
-			}
-			return osm;
+			var serializer = new XmlSerializer(typeof(Osm));
+			return serializer.Deserialize(stream) as Osm;
 		}
 	}
 }

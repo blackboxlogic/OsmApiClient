@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using OsmSharp.API;
 using OsmSharp.Changesets;
 using OsmSharp.Tags;
-using OsmSharp.Streams;
-using OsmSharp.Streams.Complete;
 using OsmSharp.Complete;
 using System.Xml.Serialization;
 using OsmSharp.IO.Xml;
@@ -31,12 +29,6 @@ namespace OsmSharp.IO.API
 
 		public AuthClient(string baseAddress) : base(baseAddress)
 		{ }
-
-		private Osm FromContent(Stream stream)
-		{
-			var serializer = new XmlSerializer(typeof(Osm));
-			return serializer.Deserialize(stream) as Osm;
-		}
 
 		public async Task<User> GetUser()
 		{
@@ -250,6 +242,28 @@ namespace OsmSharp.IO.API
 					throw new Exception($"Unable to delete OSM trace with ID: {traceId}");
 				}
 			}
+		}
+
+		protected Osm GetOsmRequest(string changesetId, OsmGeo osmGeo)
+		{
+			var osm = new Osm();
+			long changeSetId = long.Parse(changesetId);
+			switch (osmGeo.Type)
+			{
+				case OsmGeoType.Node:
+					osm.Nodes = new[] { osmGeo as Node };
+					osm.Nodes.First().ChangeSetId = changeSetId;
+					break;
+				case OsmGeoType.Way:
+					osm.Ways = new[] { osmGeo as Way };
+					osm.Ways.First().ChangeSetId = changeSetId;
+					break;
+				case OsmGeoType.Relation:
+					osm.Relations = new[] { osmGeo as Relation };
+					osm.Relations.First().ChangeSetId = changeSetId;
+					break;
+			}
+			return osm;
 		}
 
 		protected abstract void AddAuthentication(HttpClient client, string url, string method = "GET");
