@@ -7,7 +7,7 @@ namespace OsmSharp.IO.API
 	/// <summary>
 	/// Use of basic auth is discouraged. Use OAuth when practical.
 	/// </summary>
-	public class BasicAuthClient : Client
+	public class BasicAuthClient : AuthClient
 	{
 		private readonly string Username;
 		private readonly string Password;

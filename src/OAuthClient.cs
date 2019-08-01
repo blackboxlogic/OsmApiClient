@@ -3,7 +3,7 @@ using System.Net.Http;
 
 namespace OsmSharp.IO.API
 {
-	public class OAuthClient : Client
+	public class OAuthClient : AuthClient
 	{
 		/// <summary>
 		/// The OSM consumer key that was generated from OSM site
