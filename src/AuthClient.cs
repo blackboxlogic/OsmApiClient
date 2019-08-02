@@ -49,7 +49,7 @@ namespace OsmSharp.IO.API
 		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
 		public async Task<string> CreateChangeset(TagsCollection tags)
 		{
-			ValidateChangesetTags(tags);
+			Validate.ContainsTags(tags, "comment", "created_by");
 
 			using (var client = new HttpClient())
 			{
@@ -71,20 +71,6 @@ namespace OsmSharp.IO.API
 					throw new Exception($"Unable to create changeset: {message}");
 				}
 				return await response.Content.ReadAsStringAsync();
-			}
-		}
-
-		private void ValidateChangesetTags(TagsCollection tags)
-		{
-			var requiredTags = new[] { "comment", "created_by" };
-
-			foreach (var key in requiredTags)
-			{
-				if (!tags.TryGetValue(key, out string value)
-					|| string.IsNullOrEmpty(value))
-				{
-					throw new Exception($"Changeset must contain tag: {key}");
-				}
 			}
 		}
 

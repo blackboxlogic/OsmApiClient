@@ -21,6 +21,7 @@ namespace OsmSharp.IO.API
 	// track data transfered
 	// fix namespace
 	// Make sure Client covers every API action
+	// Add a readme
 	public class Client
 	{
 		/// <summary>
@@ -41,16 +42,19 @@ namespace OsmSharp.IO.API
 			BaseAddress = baseAddress;
 		}
 
-		public async Task<Osm> GetMap(Bounds bound)
+		public async Task<Osm> GetMap(Bounds bounds)
 		{
+			Validate.BoundLimits(bounds);
+
 			using (var client = new HttpClient())
 			{
 				var address = _mapAddress
-					.Replace(":left", bound.MinLongitude.Value.ToString("F")) // prevent scientific notation
-					.Replace(":bottom", bound.MinLatitude.Value.ToString("F"))
-					.Replace(":right", bound.MaxLongitude.Value.ToString("F"))
-					.Replace(":top", bound.MaxLatitude.Value.ToString("F"));
+					.Replace(":left", bounds.MinLongitude.Value.ToString(".##########")) // prevent scientific notation
+					.Replace(":bottom", bounds.MinLatitude.Value.ToString(".##########"))
+					.Replace(":right", bounds.MaxLongitude.Value.ToString(".##########"))
+					.Replace(":top", bounds.MaxLatitude.Value.ToString(".##########"));
 				var response = await client.GetAsync(address);
+
 				if (!response.IsSuccessStatusCode)
 				{
 					throw new Exception($"Unable to retrieve map: {response.StatusCode}-{response.ReasonPhrase}");
