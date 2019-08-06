@@ -17,20 +17,40 @@ namespace OsmSharp.IO.API
 {
 	public abstract class AuthClient : Client
 	{
-		private string _userDetailsAddress => BaseAddress + "user/details";
-		private string _createChangesetAddress => BaseAddress + "changeset/create";
-		private string _uploadChangesetAddress => BaseAddress + "changeset/:id/upload";
-		private string _closeChangesetAddress => BaseAddress + "changeset/:id/close";
-		private string _createElementAddress => BaseAddress + ":type/create";
-		private string _elementAddress => BaseAddress + ":type/:id";
-		private string _traceAddress => BaseAddress + "gpx/:id";
-		private string _getTracesAddress => BaseAddress + "user/gpx_files";
-		private string _createTraceAddress => BaseAddress + "gpx/create";
+		private string _userDetailsAddress => BaseAddress + "0.6/user/details";
+		private string _createChangesetAddress => BaseAddress + "0.6/changeset/create";
+		private string _updateChangesetAddress => BaseAddress + "0.6/changeset/:id";
+		private string _uploadChangesetAddress => BaseAddress + "0.6/changeset/:id/upload";
+		private string _closeChangesetAddress => BaseAddress + "0.6/changeset/:id/close";
+		private string _createElementAddress => BaseAddress + "0.6/:type/create";
+		private string _elementAddress => BaseAddress + "0.6/:type/:id";
+		private string _traceAddress => BaseAddress + "0.6/gpx/:id";
+		private string _getTracesAddress => BaseAddress + "0.6/user/gpx_files";
+		private string _createTraceAddress => BaseAddress + "0.6/gpx/create";
+		private string _permissions => BaseAddress + "0.6/permissions";
 
 		public AuthClient(string baseAddress) : base(baseAddress)
 		{ }
 
-		public async Task<User> GetUser()
+		public async Task<Permissions> GetPermissions()
+		{
+			using (var client = new HttpClient())
+			{
+				AddAuthentication(client, _userDetailsAddress);
+				var response = await client.GetAsync(_permissions);
+
+				if (!response.IsSuccessStatusCode)
+				{
+					throw new Exception($"Unable to retrieve versions: {response.StatusCode}-{response.ReasonPhrase}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var osm = FromContent(stream);
+				return osm.Permissions;
+			}
+		}
+
+		public async Task<User> GetUserDetails()
 		{
 			using (var client = new HttpClient())
 			{
@@ -38,16 +58,19 @@ namespace OsmSharp.IO.API
 				var response = await client.GetAsync(_userDetailsAddress);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					return null;
+					throw new Exception($"Unable to retrieve User: {response.StatusCode}-{response.ReasonPhrase}");
 				}
-				var streamContent = await response.Content.ReadAsStreamAsync();
-				var detailsResponse = FromContent(streamContent);
+				var stream = await response.Content.ReadAsStreamAsync();
+
+				//Console.WriteLine(new StreamReader(stream).ReadToEnd());
+
+				var detailsResponse = FromContent(stream);
 				return detailsResponse?.User;
 			}
 		}
 
 		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
-		public async Task<string> CreateChangeset(TagsCollection tags)
+		public async Task<long> CreateChangeset(TagsCollection tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
 
@@ -65,24 +88,62 @@ namespace OsmSharp.IO.API
 					}
 				};
 				var response = await client.PutAsync(_createChangesetAddress, new StringContent(changeSet.SerializeToXml()));
-				if (response.StatusCode != HttpStatusCode.OK)
+				var content = await response.Content.ReadAsStringAsync();
+				if (response.StatusCode != HttpStatusCode.OK
+					|| !long.TryParse(content, out long changesetId))
 				{
-					var message = await response.Content.ReadAsStringAsync();
-					throw new Exception($"Unable to create changeset: {message}");
+					
+					throw new Exception($"Unable to create changeset: {content}");
 				}
-				return await response.Content.ReadAsStringAsync();
+
+				return changesetId;
 			}
 		}
 
-		public async Task<DiffResult> UploadChangeset(string changesetId, OsmChange osmChange)
+		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
+		public async Task<Osm> UpdateChangeset(long changesetId, TagsCollection tags)
+		{
+			Validate.ContainsTags(tags, "comment", "created_by");
+
+			using (var client = new HttpClient())
+			{
+				var address = _updateChangesetAddress.Replace(":id", changesetId.ToString());
+				AddAuthentication(client, address, "PUT");
+				var changeSet = new Osm
+				{
+					Changesets = new[]
+					{
+						new Changeset
+						{
+							Tags = tags
+						}
+					}
+				};
+				var response = await client.PutAsync(address, new StringContent(changeSet.SerializeToXml()));
+				if (!response.IsSuccessStatusCode)
+				{
+					var content = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to update changeset: {content}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var osm = FromContent(stream);
+				return osm;
+			}
+		}
+
+		/// <remarks>This automatically adds the ChangeSetId tag to each element.</remarks>
+		public async Task<DiffResult> UploadChangeset(long changesetId, OsmChange osmChange)
 		{
 			using (var client = new HttpClient())
 			{
-				foreach (var osmGeo in osmChange.Create.Concat(osmChange.Modify).Concat(osmChange.Delete))
+				var elements = new OsmGeo[][] { osmChange.Create, osmChange.Modify, osmChange.Delete }
+					.Where(c => c != null).SelectMany(c => c);
+				foreach (var osmGeo in elements)
 				{
-					osmGeo.ChangeSetId = long.Parse(changesetId);
+					osmGeo.ChangeSetId = changesetId;
 				}
-				var address = _uploadChangesetAddress.Replace(":id", changesetId);
+				var address = _uploadChangesetAddress.Replace(":id", changesetId.ToString());
 				AddAuthentication(client, address, "POST");
 				var response = await client.PostAsync(address, new StringContent(osmChange.SerializeToXml()));
 				if (response.StatusCode != HttpStatusCode.OK)
@@ -95,7 +156,7 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		public async Task<string> CreateElement(string changesetId, OsmGeo osmGeo)
+		public async Task<string> CreateElement(long changesetId, OsmGeo osmGeo)
 		{
 			using (var client = new HttpClient())
 			{
@@ -111,7 +172,7 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		public Task UpdateElement(string changesetId, ICompleteOsmGeo osmGeo)
+		public Task UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
 		{
 			switch (osmGeo.Type)
 			{
@@ -126,7 +187,7 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		public async Task UpdateElement(string changesetId, OsmGeo osmGeo)
+		public async Task UpdateElement(long changesetId, OsmGeo osmGeo)
 		{
 			using (var client = new HttpClient())
 			{
@@ -142,11 +203,11 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		public async Task CloseChangeset(string changesetId)
+		public async Task CloseChangeset(long changesetId)
 		{
 			using (var client = new HttpClient())
 			{
-				var address = _closeChangesetAddress.Replace(":id", changesetId);
+				var address = _closeChangesetAddress.Replace(":id", changesetId.ToString());
 				AddAuthentication(client, address, "PUT");
 				var response = await client.PutAsync(address, new StringContent(string.Empty));
 				if (response.StatusCode != HttpStatusCode.OK)
@@ -230,23 +291,22 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		protected Osm GetOsmRequest(string changesetId, OsmGeo osmGeo)
+		protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
 		{
 			var osm = new Osm();
-			long changeSetId = long.Parse(changesetId);
 			switch (osmGeo.Type)
 			{
 				case OsmGeoType.Node:
 					osm.Nodes = new[] { osmGeo as Node };
-					osm.Nodes.First().ChangeSetId = changeSetId;
+					osm.Nodes.First().ChangeSetId = changesetId;
 					break;
 				case OsmGeoType.Way:
 					osm.Ways = new[] { osmGeo as Way };
-					osm.Ways.First().ChangeSetId = changeSetId;
+					osm.Ways.First().ChangeSetId = changesetId;
 					break;
 				case OsmGeoType.Relation:
 					osm.Relations = new[] { osmGeo as Relation };
-					osm.Relations.First().ChangeSetId = changeSetId;
+					osm.Relations.First().ChangeSetId = changesetId;
 					break;
 			}
 			return osm;

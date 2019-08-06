@@ -9,6 +9,7 @@ using OsmSharp.Streams.Complete;
 using OsmSharp.Complete;
 using System.IO;
 using System.Xml.Serialization;
+using OsmSharp.Changesets;
 
 namespace OsmSharp.IO.API
 {
@@ -18,9 +19,9 @@ namespace OsmSharp.IO.API
 	// logging
 	// Don't dispose httpClient
 	// cite sources/licenses
-	// track data transfered
-	// fix namespace
-	// Make sure Client covers every API action
+	// track data transfered?
+	// Choose better namespaces?
+	// Make sure Client covers every API action from https://wiki.openstreetmap.org/wiki/API_v0.6#API_calls
 	// Add a readme
 	public class Client
 	{
@@ -33,13 +34,52 @@ namespace OsmSharp.IO.API
 		/// </example>
 		protected readonly string BaseAddress;
 
-		private string _mapAddress => BaseAddress + "map?bbox=:left,:bottom,:right,:top";
-		private string _elementAddress => BaseAddress + ":type/:id";
-		private string _completeElementAddress => BaseAddress + ":type/:id/full";
+		private string _versions => BaseAddress + "versions";
+		private string _capabilities => BaseAddress + "0.6/capabilities";
+		private string _mapAddress => BaseAddress + "0.6/map?bbox=:left,:bottom,:right,:top";
+		private string _elementAddress => BaseAddress + "0.6/:type/:id";
+		private string _completeElementAddress => BaseAddress + "0.6/:type/:id/full";
+		private string _getChangesetAddress => BaseAddress + "0.6/changeset/:id";
+		private string _getChangesetDownloadAddress => BaseAddress + "0.6/changeset/:id/download";
 
 		public Client(string baseAddress)
 		{
 			BaseAddress = baseAddress;
+		}
+
+		public async Task<double?> GetVersions()
+		{
+			using (var client = new HttpClient())
+			{
+				var response = await client.GetAsync(_versions);
+
+				if (!response.IsSuccessStatusCode)
+				{
+					throw new Exception($"Unable to retrieve versions: {response.StatusCode}-{response.ReasonPhrase}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var osm = FromContent(stream);
+				return osm.Api.Version.Maximum;
+			}
+		}
+
+		public async Task<Osm> GetCapabilities()
+		{
+			using (var client = new HttpClient())
+			{
+				var response = await client.GetAsync(_capabilities);
+
+				if (!response.IsSuccessStatusCode)
+				{
+					throw new Exception($"Unable to retrieve versions: {response.StatusCode}-{response.ReasonPhrase}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+
+				var osm = FromContent(stream);
+				return osm;
+			}
 		}
 
 		public async Task<Osm> GetMap(Bounds bounds)
@@ -101,7 +141,7 @@ namespace OsmSharp.IO.API
 				var response = await client.GetAsync(address);
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					return null;
+					throw new Exception($"Unable to retrieve {type} {id}: {response.StatusCode}-{response.ReasonPhrase}");
 				}
 				var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
 				var completeSource = new OsmSimpleCompleteStreamSource(streamSource);
@@ -109,6 +149,7 @@ namespace OsmSharp.IO.API
 			}
 		}
 
+		// TODO: This should take a long.
 		public Task<Node> GetNode(string nodeId)
 		{
 			return GetElement<Node>(nodeId, "node");
@@ -136,6 +177,46 @@ namespace OsmSharp.IO.API
 				}
 				var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
 				return streamSource.OfType<TOsmGeo>().FirstOrDefault();
+			}
+		}
+
+		public async Task<Osm> GetChangeset(long changesetId, bool includeDiscussion = false)
+		{
+			using (var client = new HttpClient())
+			{
+				var address = _getChangesetAddress.Replace(":id", changesetId.ToString());
+				if (includeDiscussion)
+				{
+					address += "?include_discussion=true";
+				}
+				var response = await client.GetAsync(address);
+				if (!response.IsSuccessStatusCode)
+				{
+					var content = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to get changeset: {response.StatusCode}-{response.ReasonPhrase} {content}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var osm = FromContent(stream);
+				return osm;
+			}
+		}
+
+		public async Task<Changeset> GetChangesetDownload(long changesetId)
+		{
+			using (var client = new HttpClient())
+			{
+				var address = _getChangesetDownloadAddress.Replace(":id", changesetId.ToString());
+				var response = await client.GetAsync(address);
+				if (!response.IsSuccessStatusCode)
+				{
+					var content = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to get changeset: {response.StatusCode}-{response.ReasonPhrase} {content}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var serializer = new XmlSerializer(typeof(Changeset));
+				return serializer.Deserialize(stream) as Changeset;
 			}
 		}
 
