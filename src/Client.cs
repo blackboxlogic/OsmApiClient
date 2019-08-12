@@ -42,6 +42,8 @@ namespace OsmSharp.IO.API
 		private string _getChangesetAddress => BaseAddress + "0.6/changeset/:id";
 		private string _getChangesetDownloadAddress => BaseAddress + "0.6/changeset/:id/download";
 
+		private string OsmMaxPrecision = ".#######";
+
 		public Client(string baseAddress)
 		{
 			BaseAddress = baseAddress;
@@ -89,10 +91,10 @@ namespace OsmSharp.IO.API
 			using (var client = new HttpClient())
 			{
 				var address = _mapAddress
-					.Replace(":left", bounds.MinLongitude.Value.ToString(".##########")) // prevent scientific notation
-					.Replace(":bottom", bounds.MinLatitude.Value.ToString(".##########"))
-					.Replace(":right", bounds.MaxLongitude.Value.ToString(".##########"))
-					.Replace(":top", bounds.MaxLatitude.Value.ToString(".##########"));
+					.Replace(":left", bounds.MinLongitude.Value.ToString(OsmMaxPrecision))
+					.Replace(":bottom", bounds.MinLatitude.Value.ToString(OsmMaxPrecision))
+					.Replace(":right", bounds.MaxLongitude.Value.ToString(OsmMaxPrecision))
+					.Replace(":top", bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
 				var response = await client.GetAsync(address);
 
 				if (!response.IsSuccessStatusCode)
@@ -180,6 +182,9 @@ namespace OsmSharp.IO.API
 			}
 		}
 
+		/// <summary>
+		/// Gets a changeset's metadata.
+		/// </summary>
 		public async Task<Osm> GetChangeset(long changesetId, bool includeDiscussion = false)
 		{
 			using (var client = new HttpClient())
@@ -202,6 +207,9 @@ namespace OsmSharp.IO.API
 			}
 		}
 
+		/// <summary>
+		/// Gets a changeset's changes.
+		/// </summary>
 		public async Task<Changeset> GetChangesetDownload(long changesetId)
 		{
 			using (var client = new HttpClient())
