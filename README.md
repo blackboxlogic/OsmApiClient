@@ -12,7 +12,7 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [x] GET /api/0.6/changeset/#id?include_discussion=true
 - [x] PUT /api/0.6/changeset/#id
 - [x] PUT /api/0.6/changeset/#id/close
-- [ ] GET /api/0.6/changeset/#id/download
+- [x] GET /api/0.6/changeset/#id/download
 - [ ] POST /api/0.6/changeset/#id/expand_bbox
 - [ ] GET /api/0.6/changesets
 - [x] POST /api/0.6/changeset/#id/upload

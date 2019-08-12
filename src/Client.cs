@@ -210,7 +210,7 @@ namespace OsmSharp.IO.API
 		/// <summary>
 		/// Gets a changeset's changes.
 		/// </summary>
-		public async Task<Changeset> GetChangesetDownload(long changesetId)
+		public async Task<OsmChange> GetChangesetDownload(long changesetId)
 		{
 			using (var client = new HttpClient())
 			{
@@ -223,8 +223,8 @@ namespace OsmSharp.IO.API
 				}
 
 				var stream = await response.Content.ReadAsStreamAsync();
-				var serializer = new XmlSerializer(typeof(Changeset));
-				return serializer.Deserialize(stream) as Changeset;
+				var serializer = new XmlSerializer(typeof(OsmChange));
+				return serializer.Deserialize(stream) as OsmChange;
 			}
 		}
 
