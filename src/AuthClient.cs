@@ -29,6 +29,8 @@ namespace OsmSharp.IO.API
 		private string _createTraceAddress => BaseAddress + "0.6/gpx/create";
 		private string _permissionsAddress => BaseAddress + "0.6/permissions";
 		private string _changesetCommentAddress => BaseAddress + "0.6/changeset/:id/comment";
+		private string _changesetSubscribeAddress => BaseAddress + "0.6/changeset/:id/subscribe";
+		private string _changesetUnsubscribeAddress => BaseAddress + "0.6/changeset/:id/unsubscribe";
 
 		public AuthClient(string baseAddress) : base(baseAddress)
 		{ }
@@ -231,6 +233,46 @@ namespace OsmSharp.IO.API
 				AddAuthentication(client, address, "POST");
 				var content = new MultipartFormDataContent() { { new StringContent(text), "text" } };
 				var response = await client.PostAsync(address, content);
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					var message = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to add comment: {changesetId} {message}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Subscribe
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Subscribe:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fsubscribe">
+		/// POST /api/0.6/changeset/#id/subscribe </see>
+		/// </summary>
+		public async Task ChangesetSubscribe(long changesetId)
+		{
+			using (var client = new HttpClient())
+			{
+				var address = _changesetSubscribeAddress.Replace(":id", changesetId.ToString());
+				AddAuthentication(client, address, "POST");
+				var response = await client.PostAsync(address, new StringContent(""));
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					var message = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to add comment: {changesetId} {message}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Unsubscribe
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Subscribe:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Funsubscribe">
+		/// POST /api/0.6/changeset/#id/unsubscribe </see>
+		/// </summary>
+		public async Task ChangesetUnsubscribe(long changesetId)
+		{
+			using (var client = new HttpClient())
+			{
+				var address = _changesetUnsubscribeAddress.Replace(":id", changesetId.ToString());
+				AddAuthentication(client, address, "POST");
+				var response = await client.PostAsync(address, new StringContent(""));
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					var message = await response.Content.ReadAsStringAsync();
