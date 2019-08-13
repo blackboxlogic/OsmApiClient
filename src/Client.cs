@@ -10,6 +10,7 @@ using OsmSharp.Complete;
 using System.IO;
 using System.Xml.Serialization;
 using OsmSharp.Changesets;
+using System.Text;
 
 namespace OsmSharp.IO.API
 {
@@ -36,10 +37,11 @@ namespace OsmSharp.IO.API
 
 		private string _versions => BaseAddress + "versions";
 		private string _capabilities => BaseAddress + "0.6/capabilities";
-		private string _mapAddress => BaseAddress + "0.6/map?bbox=:left,:bottom,:right,:top";
+		private string _mapAddress => BaseAddress + "0.6/map?bbox=:bbox";
 		private string _elementAddress => BaseAddress + "0.6/:type/:id";
 		private string _completeElementAddress => BaseAddress + "0.6/:type/:id/full";
 		private string _getChangesetAddress => BaseAddress + "0.6/changeset/:id";
+		private string _getChangesetsAddress => BaseAddress + "0.6/changesets";
 		private string _getChangesetDownloadAddress => BaseAddress + "0.6/changeset/:id/download";
 
 		private string OsmMaxPrecision = ".#######";
@@ -90,11 +92,7 @@ namespace OsmSharp.IO.API
 
 			using (var client = new HttpClient())
 			{
-				var address = _mapAddress
-					.Replace(":left", bounds.MinLongitude.Value.ToString(OsmMaxPrecision))
-					.Replace(":bottom", bounds.MinLatitude.Value.ToString(OsmMaxPrecision))
-					.Replace(":right", bounds.MaxLongitude.Value.ToString(OsmMaxPrecision))
-					.Replace(":top", bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
+				var address = _mapAddress.Replace(":bbox", ToString(bounds));
 				var response = await client.GetAsync(address);
 
 				if (!response.IsSuccessStatusCode)
@@ -208,6 +206,88 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <summary>
+		/// This is an API method for querying changesets.
+		/// </summary>
+		/// <remarks>
+		/// It supports querying by different criteria. Where multiple queries are given the result
+		/// will be those which match all of the requirements.The contents of the returned document
+		/// are the changesets and their tags. To get the full set of changes associated with a
+		/// changeset, use the download method on each changeset ID individually.
+		/// </remarks>
+		public async Task<Osm> GetChangesets(Bounds bounds, int? userId, string userName,
+			DateTime? minClosedDate, DateTime? maxOpenedDate, bool openOnly, bool closedOnly,
+			long[] changesetIds)
+		{
+			if (userId.HasValue && userName != null)
+			{
+				throw new Exception("Query can only specify userID OR userName, not both.");
+			}
+			if (openOnly && closedOnly)
+			{
+				throw new Exception("Query can only specify openOnly OR closedOnly, not both.");
+			}
+			if (!minClosedDate.HasValue && maxOpenedDate.HasValue)
+			{
+				throw new Exception("Query must specify minClosedDate if maxOpenedDate is precified.");
+			}
+
+			var address = _getChangesetsAddress + "?";
+			if (bounds != null)
+			{
+				address += "bbox=" + ToString(bounds) + '&';
+			}
+
+			if (userId.HasValue)
+			{
+				address += "user=" + userId + '&';
+			}
+			else if (userName != null)
+			{
+				address += "display_name=" + userName + '&';
+			}
+
+			if (minClosedDate.HasValue)
+			{
+				address += "time=" + minClosedDate;
+				if (maxOpenedDate.HasValue)
+				{
+					address += "," + maxOpenedDate;
+				}
+				address += '&';
+			}
+
+			if (openOnly)
+			{
+				address += "open=true&";
+			}
+			else if (closedOnly)
+			{
+				address += "closed=true&";
+			}
+
+			if (changesetIds != null)
+			{
+				address += $"changesets={string.Join(",", changesetIds)}&";
+			}
+
+			address = address.Substring(0, address.Length - 1); // remove the last &
+
+			using (var client = new HttpClient())
+			{
+				var response = await client.GetAsync(address);
+				if (!response.IsSuccessStatusCode)
+				{
+					var content = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to get changesets: {response.StatusCode}-{response.ReasonPhrase} {content}");
+				}
+
+				var stream = await response.Content.ReadAsStreamAsync();
+				var osm = FromContent(stream);
+				return osm;
+			}
+		}
+
+		/// <summary>
 		/// Gets a changeset's changes.
 		/// </summary>
 		public async Task<OsmChange> GetChangesetDownload(long changesetId)
@@ -232,6 +312,20 @@ namespace OsmSharp.IO.API
 		{
 			var serializer = new XmlSerializer(typeof(Osm));
 			return serializer.Deserialize(stream) as Osm;
+		}
+
+		protected string ToString(Bounds bounds)
+		{
+			StringBuilder x = new StringBuilder();
+			x.Append(bounds.MinLongitude.Value.ToString(OsmMaxPrecision));
+			x.Append(',');
+			x.Append(bounds.MinLatitude.Value.ToString(OsmMaxPrecision));
+			x.Append(',');
+			x.Append(bounds.MaxLongitude.Value.ToString(OsmMaxPrecision));
+			x.Append(',');
+			x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
+
+			return x.ToString();
 		}
 	}
 }
