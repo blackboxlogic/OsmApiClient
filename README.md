@@ -29,7 +29,7 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [ ] GET /api/0.6/[nodes|ways|relations]?#parameters
 - [ ] GET /api/0.6/[node|way|relation]
 - [ ] POST /api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id
-### Gpx FIles
+### Gpx Files
 - [ ] GET /api/0.6/trackpoints?bbox=left,bottom,right,top&page=pageNumber
 - [ ] POST /api/0.6/gpx/create
 - [ ] GET /api/0.6/gpx//details
