@@ -104,6 +104,7 @@ namespace OsmSharp.IO.API
 		public async Task<Osm> UpdateChangeset(long changesetId, TagsCollection tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
+			// TODO: Validate change meets OsmSharp.API.Capabilities
 
 			using (var client = new HttpClient())
 			{
