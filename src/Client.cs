@@ -18,12 +18,10 @@ namespace OsmSharp.IO.API
 	// get auth to work
 	// functional tests
 	// logging
-	// Don't dispose httpClient
 	// cite sources/licenses
 	// track data transfered?
 	// Choose better namespaces?
 	// Make sure Client covers every API action from https://wiki.openstreetmap.org/wiki/API_v0.6#API_calls
-	// Add a readme
 	public class Client
 	{
 		/// <summary>
@@ -35,20 +33,7 @@ namespace OsmSharp.IO.API
 		/// </example>
 		protected readonly string BaseAddress;
 
-		private string _versions => BaseAddress + "versions";
-		private string _capabilities => BaseAddress + "0.6/capabilities";
-		private string _mapAddress => BaseAddress + "0.6/map?bbox=:bbox";
-		private string _elementAddress => BaseAddress + "0.6/:type/:id";
-		private string _completeElementAddress => BaseAddress + "0.6/:type/:id/full";
-		private string _getChangesetAddress => BaseAddress + "0.6/changeset/:id";
-		private string _getChangesetsAddress => BaseAddress + "0.6/changesets";
-		private string _getChangesetDownloadAddress => BaseAddress + "0.6/changeset/:id/download";
-
 		private string OsmMaxPrecision = ".#######";
-
-		protected static readonly XmlSerializer SerializerOsm = new XmlSerializer(typeof(Osm));
-		protected static readonly XmlSerializer SerializerChangeset = new XmlSerializer(typeof(Changeset));
-		protected static readonly XmlSerializer SerializerOsmChange = new XmlSerializer(typeof(OsmChange));
 
 		public Client(string baseAddress)
 		{
@@ -57,131 +42,75 @@ namespace OsmSharp.IO.API
 
 		public async Task<double?> GetVersions()
 		{
-			using (var client = new HttpClient())
-			{
-				var response = await client.GetAsync(_versions);
-
-				if (!response.IsSuccessStatusCode)
-				{
-					throw new Exception($"Unable to retrieve versions: {response.StatusCode}-{response.ReasonPhrase}");
-				}
-
-				var stream = await response.Content.ReadAsStreamAsync();
-				var osm = FromContent(stream);
-				return osm.Api.Version.Maximum;
-			}
+			var osm = await Get<Osm>(BaseAddress + "versions");
+			return osm.Api.Version.Maximum;
 		}
 
 		public async Task<Osm> GetCapabilities()
 		{
-			using (var client = new HttpClient())
-			{
-				var response = await client.GetAsync(_capabilities);
-
-				if (!response.IsSuccessStatusCode)
-				{
-					throw new Exception($"Unable to retrieve versions: {response.StatusCode}-{response.ReasonPhrase}");
-				}
-
-				var stream = await response.Content.ReadAsStreamAsync();
-
-				var osm = FromContent(stream);
-				return osm;
-			}
+			return await Get<Osm>(BaseAddress + "0.6/capabilities");
 		}
 
 		public async Task<Osm> GetMap(Bounds bounds)
 		{
 			Validate.BoundLimits(bounds);
+			var address = BaseAddress + $"0.6/map?bbox={ToString(bounds)}";
 
-			using (var client = new HttpClient())
-			{
-				var address = _mapAddress.Replace(":bbox", ToString(bounds));
-				var response = await client.GetAsync(address);
-
-				if (!response.IsSuccessStatusCode)
-				{
-					throw new Exception($"Unable to retrieve map: {response.StatusCode}-{response.ReasonPhrase}");
-				}
-
-				var stream = await response.Content.ReadAsStreamAsync();
-				var osm = FromContent(stream);
-				return osm;
-			}
+			return await Get<Osm>(address);
 		}
 
-		public async Task<ICompleteOsmGeo> GetElement(string elementId, string type)
-		{
-			if (type.Equals(OsmGeoType.Node.ToString(), StringComparison.OrdinalIgnoreCase))
-			{
-				return await GetNode(elementId);
-			}
-			if (type.Equals(OsmGeoType.Way.ToString(), StringComparison.OrdinalIgnoreCase))
-			{
-				return await GetCompleteWay(elementId);
-			}
-			if (type.Equals(OsmGeoType.Relation.ToString(), StringComparison.OrdinalIgnoreCase))
-			{
-				return await GetCompleteRelation(elementId);
-			}
-			throw new ArgumentException($"invalid {nameof(type)}: {type}");
-		}
-
-		public Task<CompleteWay> GetCompleteWay(string wayId)
+		public Task<CompleteWay> GetCompleteWay(long wayId)
 		{
 			return GetCompleteElement<CompleteWay>(wayId, "way");
 		}
 
-		public Task<CompleteRelation> GetCompleteRelation(string relationId)
+		public Task<CompleteRelation> GetCompleteRelation(long relationId)
 		{
 			return GetCompleteElement<CompleteRelation>(relationId, "relation");
 		}
 
-		private async Task<TCompleteOsmGeo> GetCompleteElement<TCompleteOsmGeo>(string id, string type) where TCompleteOsmGeo : class, ICompleteOsmGeo
+		private async Task<TCompleteOsmGeo> GetCompleteElement<TCompleteOsmGeo>(long id, string type) where TCompleteOsmGeo : class, ICompleteOsmGeo
 		{
-			using (var client = new HttpClient())
+			var address = BaseAddress + $"0.6/{type}/{id}/full";
+			var client = new HttpClient();
+
+			var response = await client.GetAsync(address);
+			if (response.StatusCode != HttpStatusCode.OK)
 			{
-				var address = _completeElementAddress.Replace(":id", id).Replace(":type", type);
-				var response = await client.GetAsync(address);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					throw new Exception($"Unable to retrieve {type} {id}: {response.StatusCode}-{response.ReasonPhrase}");
-				}
-				var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
-				var completeSource = new OsmSimpleCompleteStreamSource(streamSource);
-				return completeSource.OfType<TCompleteOsmGeo>().FirstOrDefault();
+				throw new Exception($"Unable to retrieve {type} {id}: {response.StatusCode}-{response.ReasonPhrase}");
 			}
+			var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
+			var completeSource = new OsmSimpleCompleteStreamSource(streamSource);
+			return completeSource.OfType<TCompleteOsmGeo>().FirstOrDefault();
 		}
 
-		// TODO: This should take a long.
-		public Task<Node> GetNode(string nodeId)
+		public async Task<Node> GetNode(long nodeId)
 		{
-			return GetElement<Node>(nodeId, "node");
+			return await GetElement<Node>(nodeId, "node");
 		}
 
-		public Task<Way> GetWay(string wayId)
+		public async Task<Way> GetWay(long wayId)
 		{
-			return GetElement<Way>(wayId, "way");
+			return await GetElement<Way>(wayId, "way");
 		}
 
-		public Task<Relation> GetRelation(string relationId)
+		public async Task<Relation> GetRelation(long relationId)
 		{
-			return GetElement<Relation>(relationId, "relation");
+			return await GetElement<Relation>(relationId, "relation");
 		}
 
-		private async Task<TOsmGeo> GetElement<TOsmGeo>(string id, string type) where TOsmGeo : OsmGeo
+		private async Task<TOsmGeo> GetElement<TOsmGeo>(long id, string type) where TOsmGeo : OsmGeo
 		{
-			using (var client = new HttpClient())
+			var client = new HttpClient();
+			var address = BaseAddress + $"0.6/{type}/{id}";
+			var response = await client.GetAsync(address);
+			if (!response.IsSuccessStatusCode)
 			{
-				var address = _elementAddress.Replace(":id", id).Replace(":type", type);
-				var response = await client.GetAsync(address);
-				if (response.StatusCode != HttpStatusCode.OK)
-				{
-					return null;
-				}
-				var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
-				return streamSource.OfType<TOsmGeo>().FirstOrDefault();
+				var errorContent = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
 			}
+			var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
+			return streamSource.OfType<TOsmGeo>().FirstOrDefault();
 		}
 
 		/// <summary>
@@ -191,24 +120,13 @@ namespace OsmSharp.IO.API
 		/// </summary>
 		public async Task<Changeset> GetChangeset(long changesetId, bool includeDiscussion = false)
 		{
-			using (var client = new HttpClient())
+			var address = BaseAddress + $"0.6/changeset/{changesetId}";
+			if (includeDiscussion)
 			{
-				var address = _getChangesetAddress.Replace(":id", changesetId.ToString());
-				if (includeDiscussion)
-				{
-					address += "?include_discussion=true";
-				}
-				var response = await client.GetAsync(address);
-				if (!response.IsSuccessStatusCode)
-				{
-					var content = await response.Content.ReadAsStringAsync();
-					throw new Exception($"Unable to get changeset: {response.StatusCode}-{response.ReasonPhrase} {content}");
-				}
-
-				var stream = await response.Content.ReadAsStreamAsync();
-				var osm = FromContent(stream);
-				return osm.Changesets[0];
+				address += "?include_discussion=true";
 			}
+			var osm = await Get<Osm>(address);
+			return osm.Changesets[0];
 		}
 
 		/// <summary>
@@ -233,7 +151,7 @@ namespace OsmSharp.IO.API
 				throw new Exception("Query must specify minClosedDate if maxOpenedDate is specified.");
 			}
 
-			var address = _getChangesetsAddress + "?";
+			var address = BaseAddress + "0.6/changesets?";
 			if (bounds != null)
 			{
 				address += "bbox=" + ToString(bounds) + '&';
@@ -274,19 +192,7 @@ namespace OsmSharp.IO.API
 
 			address = address.Substring(0, address.Length - 1); // remove the last &
 
-			using (var client = new HttpClient())
-			{
-				var response = await client.GetAsync(address);
-				if (!response.IsSuccessStatusCode)
-				{
-					var content = await response.Content.ReadAsStringAsync();
-					throw new Exception($"Unable to get changesets: {response.StatusCode}-{response.ReasonPhrase} {content}");
-				}
-
-				var stream = await response.Content.ReadAsStreamAsync();
-				var osm = FromContent(stream);
-				return osm;
-			}
+			return await Get<Osm>(address);
 		}
 
 		/// <summary>
@@ -296,24 +202,30 @@ namespace OsmSharp.IO.API
 		/// </summary>
 		public async Task<OsmChange> GetChangesetDownload(long changesetId)
 		{
-			using (var client = new HttpClient())
-			{
-				var address = _getChangesetDownloadAddress.Replace(":id", changesetId.ToString());
-				var response = await client.GetAsync(address);
-				if (!response.IsSuccessStatusCode)
-				{
-					var content = await response.Content.ReadAsStringAsync();
-					throw new Exception($"Unable to get changeset: {response.StatusCode}-{response.ReasonPhrase} {content}");
-				}
+			return await Get<OsmChange>(BaseAddress + $"0.6/changeset/{changesetId}/download");
+		}
 
-				var stream = await response.Content.ReadAsStreamAsync();
-				return SerializerOsmChange.Deserialize(stream) as OsmChange;
+		protected async Task<T> Get<T>(string address, Action<HttpClient> auth = null) where T : class
+		{
+			var client = new HttpClient();
+			if (auth != null) auth(client);
+			var response = await client.GetAsync(address);
+			if (!response.IsSuccessStatusCode)
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
 			}
+
+			var stream = await response.Content.ReadAsStreamAsync();
+			var serializer = new XmlSerializer(typeof(T));
+			var content = serializer.Deserialize(stream) as T;
+			return content;
 		}
 
 		protected Osm FromContent(Stream stream)
 		{
-			return SerializerOsm.Deserialize(stream) as Osm;
+			var serializer = new XmlSerializer(typeof(Osm));
+			return serializer.Deserialize(stream) as Osm;
 		}
 
 		protected string ToString(Bounds bounds)
