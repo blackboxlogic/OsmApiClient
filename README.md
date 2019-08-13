@@ -16,7 +16,7 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [x] GET /api/0.6/changesets
 - [x] POST /api/0.6/changeset/#id/upload
 ### Change Set Discussion
-- [ ] POST /api/0.6/changeset/#id/comment
+- [x] POST /api/0.6/changeset/#id/comment
 - [ ] POST /api/0.6/changeset/#id/subscribe
 - [ ] POST /api/0.6/changeset/#id/unsubscribe
 ### Elements

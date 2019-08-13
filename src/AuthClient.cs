@@ -27,7 +27,8 @@ namespace OsmSharp.IO.API
 		private string _traceAddress => BaseAddress + "0.6/gpx/:id";
 		private string _getTracesAddress => BaseAddress + "0.6/user/gpx_files";
 		private string _createTraceAddress => BaseAddress + "0.6/gpx/create";
-		private string _permissions => BaseAddress + "0.6/permissions";
+		private string _permissionsAddress => BaseAddress + "0.6/permissions";
+		private string _changesetCommentAddress => BaseAddress + "0.6/changeset/:id/comment";
 
 		public AuthClient(string baseAddress) : base(baseAddress)
 		{ }
@@ -37,7 +38,7 @@ namespace OsmSharp.IO.API
 			using (var client = new HttpClient())
 			{
 				AddAuthentication(client, _userDetailsAddress);
-				var response = await client.GetAsync(_permissions);
+				var response = await client.GetAsync(_permissionsAddress);
 
 				if (!response.IsSuccessStatusCode)
 				{
@@ -61,8 +62,6 @@ namespace OsmSharp.IO.API
 					throw new Exception($"Unable to retrieve User: {response.StatusCode}-{response.ReasonPhrase}");
 				}
 				var stream = await response.Content.ReadAsStreamAsync();
-
-				//Console.WriteLine(new StreamReader(stream).ReadToEnd());
 
 				var detailsResponse = FromContent(stream);
 				return detailsResponse?.User;
@@ -101,7 +100,7 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
-		public async Task<Osm> UpdateChangeset(long changesetId, TagsCollection tags)
+		public async Task<Changeset> UpdateChangeset(long changesetId, TagsCollection tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
 			// TODO: Validate change meets OsmSharp.API.Capabilities
@@ -129,7 +128,7 @@ namespace OsmSharp.IO.API
 
 				var stream = await response.Content.ReadAsStreamAsync();
 				var osm = FromContent(stream);
-				return osm;
+				return osm.Changesets[0];
 			}
 		}
 
@@ -215,6 +214,27 @@ namespace OsmSharp.IO.API
 				{
 					var message = await response.Content.ReadAsStringAsync();
 					throw new Exception($"Unable to close changeset with id: {changesetId} {message}");
+				}
+			}
+		}
+
+		/// <summary>
+		/// Comment
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Comment:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fcomment">
+		/// POST /api/0.6/changeset/#id/comment </see>
+		/// </summary>
+		public async Task AddChangesetComment(long changesetId, string text)
+		{
+			using (var client = new HttpClient())
+			{
+				var address = _changesetCommentAddress.Replace(":id", changesetId.ToString());
+				AddAuthentication(client, address, "POST");
+				var content = new MultipartFormDataContent() { { new StringContent(text), "text" } };
+				var response = await client.PostAsync(address, content);
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					var message = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Unable to add comment: {changesetId} {message}");
 				}
 			}
 		}

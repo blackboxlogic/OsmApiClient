@@ -46,6 +46,10 @@ namespace OsmSharp.IO.API
 
 		private string OsmMaxPrecision = ".#######";
 
+		protected static readonly XmlSerializer SerializerOsm = new XmlSerializer(typeof(Osm));
+		protected static readonly XmlSerializer SerializerChangeset = new XmlSerializer(typeof(Changeset));
+		protected static readonly XmlSerializer SerializerOsmChange = new XmlSerializer(typeof(OsmChange));
+
 		public Client(string baseAddress)
 		{
 			BaseAddress = baseAddress;
@@ -181,9 +185,11 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <summary>
-		/// Gets a changeset's metadata.
+		/// Changeset Read
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fchangeset.2F.23id.3Finclude_discussion.3Dtrue">
+		/// GET /api/0.6/changeset/#id?include_discussion=true</see>.
 		/// </summary>
-		public async Task<Osm> GetChangeset(long changesetId, bool includeDiscussion = false)
+		public async Task<Changeset> GetChangeset(long changesetId, bool includeDiscussion = false)
 		{
 			using (var client = new HttpClient())
 			{
@@ -201,19 +207,15 @@ namespace OsmSharp.IO.API
 
 				var stream = await response.Content.ReadAsStreamAsync();
 				var osm = FromContent(stream);
-				return osm;
+				return osm.Changesets[0];
 			}
 		}
 
 		/// <summary>
-		/// This is an API method for querying changesets.
+		/// Changeset Query
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Query:_GET_.2Fapi.2F0.6.2Fchangesets">
+		/// GET /api/0.6/changesets</see>
 		/// </summary>
-		/// <remarks>
-		/// It supports querying by different criteria. Where multiple queries are given the result
-		/// will be those which match all of the requirements.The contents of the returned document
-		/// are the changesets and their tags. To get the full set of changes associated with a
-		/// changeset, use the download method on each changeset ID individually.
-		/// </remarks>
 		public async Task<Osm> GetChangesets(Bounds bounds, int? userId, string userName,
 			DateTime? minClosedDate, DateTime? maxOpenedDate, bool openOnly, bool closedOnly,
 			long[] changesetIds)
@@ -228,7 +230,7 @@ namespace OsmSharp.IO.API
 			}
 			if (!minClosedDate.HasValue && maxOpenedDate.HasValue)
 			{
-				throw new Exception("Query must specify minClosedDate if maxOpenedDate is precified.");
+				throw new Exception("Query must specify minClosedDate if maxOpenedDate is specified.");
 			}
 
 			var address = _getChangesetsAddress + "?";
@@ -288,7 +290,9 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <summary>
-		/// Gets a changeset's changes.
+		/// Changeset Download
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fchangeset.2F.23id.3Finclude_discussion.3Dtrue">
+		/// GET /api/0.6/changeset/#id/download</see>
 		/// </summary>
 		public async Task<OsmChange> GetChangesetDownload(long changesetId)
 		{
@@ -303,15 +307,13 @@ namespace OsmSharp.IO.API
 				}
 
 				var stream = await response.Content.ReadAsStreamAsync();
-				var serializer = new XmlSerializer(typeof(OsmChange));
-				return serializer.Deserialize(stream) as OsmChange;
+				return SerializerOsmChange.Deserialize(stream) as OsmChange;
 			}
 		}
 
 		protected Osm FromContent(Stream stream)
 		{
-			var serializer = new XmlSerializer(typeof(Osm));
-			return serializer.Deserialize(stream) as Osm;
+			return SerializerOsm.Deserialize(stream) as Osm;
 		}
 
 		protected string ToString(Bounds bounds)
