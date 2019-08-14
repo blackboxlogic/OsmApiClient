@@ -106,6 +106,31 @@ namespace OsmSharp.IO.API
 			return element;
 		}
 
+		public async Task<Node[]> GetNodeHistory(long id)
+		{
+			return await GetElementHistory<Node>(id);
+		}
+
+		public async Task<Way[]> GetWayHistory(long id)
+		{
+			return await GetElementHistory<Way>(id);
+		}
+
+		public async Task<Relation[]> GetRelationHistory(long id)
+		{
+			return await GetElementHistory<Relation>(id);
+		}
+
+		private async Task<TOsmGeo[]> GetElementHistory<TOsmGeo>(long id) where TOsmGeo : OsmGeo, new()
+		{
+			var type = new TOsmGeo().Type.ToString().ToLower();
+			var address = BaseAddress + $"0.6/{type}/{id}/history";
+			var content = await Get(address);
+			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
+			var elements = streamSource.OfType<TOsmGeo>().ToArray();
+			return elements;
+		}
+
 		/// <summary>
 		/// Changeset Read
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fchangeset.2F.23id.3Finclude_discussion.3Dtrue">
