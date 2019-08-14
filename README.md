@@ -28,6 +28,9 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [ ] GET /api/0.6/[node|way|relation]/#id/#version
 - [ ] GET /api/0.6/[nodes|ways|relations]?#parameters
 - [ ] GET /api/0.6/[node|way|relation]
+- [ ] GET /api/0.6/[node|way|relation]/#id/relations
+- [ ] GET /api/0.6/node/#id/ways
+- [x] GET /api/0.6/[way|relation]/#id/full
 ### Gpx Files
 - [ ] GET /api/0.6/trackpoints?bbox=left,bottom,right,top&page=pageNumber
 - [ ] POST /api/0.6/gpx/create
@@ -35,7 +38,6 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [ ] GET /api/0.6/gpx/#id/data
 - [ ] GET /api/0.6/user/gpx_files
 ### User Info
-- [ ] GET /api/0.6/user/gpx_files
 - [ ] GET /api/0.6/user/#id
 - [ ] GET /api/0.6/users?users=#id1,#id2,...,#idn
 - [x] GET /api/0.6/user/details

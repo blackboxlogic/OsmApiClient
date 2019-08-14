@@ -59,58 +59,51 @@ namespace OsmSharp.IO.API
 			return await Get<Osm>(address);
 		}
 
-		public Task<CompleteWay> GetCompleteWay(long wayId)
+		public Task<CompleteWay> GetCompleteWay(long id)
 		{
-			return GetCompleteElement<CompleteWay>(wayId, "way");
+			return GetCompleteElement<CompleteWay>(id);
 		}
 
-		public Task<CompleteRelation> GetCompleteRelation(long relationId)
+		public Task<CompleteRelation> GetCompleteRelation(long id)
 		{
-			return GetCompleteElement<CompleteRelation>(relationId, "relation");
+			return GetCompleteElement<CompleteRelation>(id);
 		}
 
-		private async Task<TCompleteOsmGeo> GetCompleteElement<TCompleteOsmGeo>(long id, string type) where TCompleteOsmGeo : class, ICompleteOsmGeo
+		private async Task<TCompleteOsmGeo> GetCompleteElement<TCompleteOsmGeo>(long id) where TCompleteOsmGeo : ICompleteOsmGeo, new()
 		{
+			var type = new TCompleteOsmGeo().Type.ToString().ToLower();
 			var address = BaseAddress + $"0.6/{type}/{id}/full";
-			var client = new HttpClient();
-
-			var response = await client.GetAsync(address);
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				throw new Exception($"Unable to retrieve {type} {id}: {response.StatusCode}-{response.ReasonPhrase}");
-			}
-			var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
+			var content = await Get(address);
+			var stream = await content.ReadAsStreamAsync();
+			var streamSource = new XmlOsmStreamSource(stream);
 			var completeSource = new OsmSimpleCompleteStreamSource(streamSource);
-			return completeSource.OfType<TCompleteOsmGeo>().FirstOrDefault();
+			var element = completeSource.OfType<TCompleteOsmGeo>().FirstOrDefault();
+			return element;
 		}
 
-		public async Task<Node> GetNode(long nodeId)
+		public async Task<Node> GetNode(long id)
 		{
-			return await GetElement<Node>(nodeId, "node");
+			return await GetElement<Node>(id);
 		}
 
-		public async Task<Way> GetWay(long wayId)
+		public async Task<Way> GetWay(long id)
 		{
-			return await GetElement<Way>(wayId, "way");
+			return await GetElement<Way>(id);
 		}
 
-		public async Task<Relation> GetRelation(long relationId)
+		public async Task<Relation> GetRelation(long id)
 		{
-			return await GetElement<Relation>(relationId, "relation");
+			return await GetElement<Relation>(id);
 		}
 
-		private async Task<TOsmGeo> GetElement<TOsmGeo>(long id, string type) where TOsmGeo : OsmGeo
+		private async Task<TOsmGeo> GetElement<TOsmGeo>(long id) where TOsmGeo : OsmGeo, new()
 		{
-			var client = new HttpClient();
+			var type = new TOsmGeo().Type.ToString().ToLower();
 			var address = BaseAddress + $"0.6/{type}/{id}";
-			var response = await client.GetAsync(address);
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-			}
-			var streamSource = new XmlOsmStreamSource(await response.Content.ReadAsStreamAsync());
-			return streamSource.OfType<TOsmGeo>().FirstOrDefault();
+			var content = await Get(address);
+			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
+			var element = streamSource.OfType<TOsmGeo>().FirstOrDefault();
+			return element;
 		}
 
 		/// <summary>
@@ -207,6 +200,15 @@ namespace OsmSharp.IO.API
 
 		protected async Task<T> Get<T>(string address, Action<HttpClient> auth = null) where T : class
 		{
+			var content = await Get(address, auth);
+			var stream = await content.ReadAsStreamAsync();
+			var serializer = new XmlSerializer(typeof(T));
+			var element = serializer.Deserialize(stream) as T;
+			return element;
+		}
+
+		protected async Task<HttpContent> Get(string address, Action<HttpClient> auth = null)
+		{
 			var client = new HttpClient();
 			if (auth != null) auth(client);
 			var response = await client.GetAsync(address);
@@ -216,16 +218,7 @@ namespace OsmSharp.IO.API
 				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
 			}
 
-			var stream = await response.Content.ReadAsStreamAsync();
-			var serializer = new XmlSerializer(typeof(T));
-			var content = serializer.Deserialize(stream) as T;
-			return content;
-		}
-
-		protected Osm FromContent(Stream stream)
-		{
-			var serializer = new XmlSerializer(typeof(Osm));
-			return serializer.Deserialize(stream) as Osm;
+			return response.Content;
 		}
 
 		protected string ToString(Bounds bounds)

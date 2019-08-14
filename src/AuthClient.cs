@@ -54,8 +54,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/changeset/{changesetId}";
 			var changeSet = new Osm { Changesets = new[] { new Changeset { Tags = tags } } };
 			var content = new StringContent(changeSet.SerializeToXml());
-			var response = await Put(address, content);
-			var osm = FromContent(await response.ReadAsStreamAsync());
+			var osm = await Put<Osm>(address, content);
 			return osm.Changesets[0];
 		}
 
@@ -264,6 +263,15 @@ namespace OsmSharp.IO.API
 				var errorContent = await response.Content.ReadAsStringAsync();
 				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
 			}
+		}
+
+		protected async Task<T> Put<T>(string address, HttpContent requestContent = null) where T : class
+		{
+			var content = await Put(address, requestContent);
+			var stream = await content.ReadAsStreamAsync();
+			var serializer = new XmlSerializer(typeof(T));
+			var element = serializer.Deserialize(stream) as T;
+			return element;
 		}
 
 		protected async Task<HttpContent> Put(string address, HttpContent requestContent = null)
