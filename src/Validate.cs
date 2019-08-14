@@ -23,7 +23,7 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		internal static void ContainsTags(TagsCollection tags, params string[] keys)
+		internal static void ContainsTags(TagsCollectionBase tags, params string[] keys)
 		{
 			foreach (var key in keys)
 			{
@@ -33,6 +33,11 @@ namespace OsmSharp.IO.API
 					throw new Exception($"TagCollection is missing the required key: {key}");
 				}
 			}
+		}
+
+		internal static void ElementHasAVersion(OsmGeo osmGeo)
+		{
+			if (osmGeo.Version == null) throw new Exception("Element must have a version");
 		}
 	}
 }

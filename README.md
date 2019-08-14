@@ -20,20 +20,20 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [x] POST /api/0.6/changeset/#id/subscribe
 - [x] POST /api/0.6/changeset/#id/unsubscribe
 ### Elements
-- [ ] PUT /api/0.6/[node|way|relation]/create
+- [x] PUT /api/0.6/[node|way|relation]/create
 - [x] GET /api/0.6/[node|way|relation]/#id
-- [ ] PUT /api/0.6/[node|way|relation]/#id
-- [ ] DELETE /api/0.6/[node|way|relation]/#id
+- [x] PUT /api/0.6/[node|way|relation]/#id
+- [x] DELETE /api/0.6/[node|way|relation]/#id
 - [ ] GET /api/0.6/[node|way|relation]/#id/history
 - [ ] GET /api/0.6/[node|way|relation]/#id/#version
 - [ ] GET /api/0.6/[nodes|ways|relations]?#parameters
 - [ ] GET /api/0.6/[node|way|relation]
-- [ ] POST /api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id
 ### Gpx Files
 - [ ] GET /api/0.6/trackpoints?bbox=left,bottom,right,top&page=pageNumber
 - [ ] POST /api/0.6/gpx/create
-- [ ] GET /api/0.6/gpx//details
-- [ ] GET /api/0.6/gpx//data
+- [ ] GET /api/0.6/gpx/#id/details
+- [ ] GET /api/0.6/gpx/#id/data
+- [ ] GET /api/0.6/user/gpx_files
 ### User Info
 - [ ] GET /api/0.6/user/gpx_files
 - [ ] GET /api/0.6/user/#id

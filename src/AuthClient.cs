@@ -86,16 +86,19 @@ namespace OsmSharp.IO.API
 			return long.Parse(id);
 		}
 
-		public Task UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
+		public async Task UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
 		{
 			switch (osmGeo.Type)
 			{
 				case OsmGeoType.Node:
-					return UpdateElement(changesetId, osmGeo as OsmGeo);
+					await UpdateElement(changesetId, osmGeo as OsmGeo);
+					break;
 				case OsmGeoType.Way:
-					return UpdateElement(changesetId, ((CompleteWay)osmGeo).ToSimple());
+					await UpdateElement(changesetId, ((CompleteWay)osmGeo).ToSimple());
+					break;
 				case OsmGeoType.Relation:
-					return UpdateElement(changesetId, ((CompleteRelation)osmGeo).ToSimple());
+					await UpdateElement(changesetId, ((CompleteRelation)osmGeo).ToSimple());
+					break;
 				default:
 					throw new Exception($"Invalid OSM geometry type: {osmGeo.Type}");
 			}
@@ -103,10 +106,22 @@ namespace OsmSharp.IO.API
 
 		public async Task UpdateElement(long changesetId, OsmGeo osmGeo)
 		{
+			Validate.ElementHasAVersion(osmGeo);
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
 			var osmRequest = GetOsmRequest(changesetId, osmGeo);
 			var content = new StringContent(osmRequest.SerializeToXml());
 			await Put(address, content);
+		}
+
+		public async Task<int> DeleteElement(long changesetId, OsmGeo osmGeo)
+		{
+			Validate.ElementHasAVersion(osmGeo);
+			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
+			var osmRequest = GetOsmRequest(changesetId, osmGeo);
+			var content = new StringContent(osmRequest.SerializeToXml());
+			var responseContent = await Delete(address, content);
+			var newVersionNumber = await responseContent.ReadAsStringAsync();
+			return int.Parse(newVersionNumber);
 		}
 
 		public async Task CloseChangeset(long changesetId)
@@ -149,11 +164,11 @@ namespace OsmSharp.IO.API
 			await Post(address);
 		}
 
-		public async Task<List<GpxFile>> GetTraces()
+		public async Task<GpxFile[]> GetTraces()
 		{
 			var address = BaseAddress + "0.6/user/gpx_files";
 			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
-			return (osm.GpxFiles ?? new GpxFile[0]).ToList();
+			return osm.GpxFiles ?? new GpxFile[0];
 		}
 
 		public async Task CreateTrace(string fileName, MemoryStream fileStream)
@@ -178,6 +193,7 @@ namespace OsmSharp.IO.API
 			await Post(address, multipartFormDataContent);
 		}
 
+		// This isn't listed in the documentation?
 		public async Task UpdateTrace(GpxFile trace)
 		{
 			var address = BaseAddress + $"0.6/gpx/{trace.Id}";
@@ -189,17 +205,11 @@ namespace OsmSharp.IO.API
 			await Put(address, content);
 		}
 
+		// This isn't listed in the documentation?
 		public async Task DeleteTrace(long traceId)
 		{
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
-			var client = new HttpClient();
-			AddAuthentication(client, address, "DELETE");
-			var response = await client.DeleteAsync(address);
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-			}
+			await Delete(address);
 		}
 
 		protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
@@ -263,6 +273,36 @@ namespace OsmSharp.IO.API
 			var client = new HttpClient();
 			AddAuthentication(client, address, "PUT");
 			var response = await client.PutAsync(address, requestContent);
+			if (!response.IsSuccessStatusCode)
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
+			}
+
+			return response.Content;
+		}
+
+		protected async Task<HttpContent> Delete(string address, HttpContent requestContent = null)
+		{
+			var client = new HttpClient();
+			AddAuthentication(client, address, "DELETE");
+			HttpResponseMessage response;
+
+			if (requestContent != null)
+			{
+				HttpRequestMessage request = new HttpRequestMessage
+				{
+					Content = requestContent,
+					Method = HttpMethod.Delete,
+					RequestUri = new Uri(address)
+				};
+				response = await client.SendAsync(request);
+			}
+			else
+			{
+				response = await client.DeleteAsync(address);
+			}
+
 			if (!response.IsSuccessStatusCode)
 			{
 				var errorContent = await response.Content.ReadAsStringAsync();
