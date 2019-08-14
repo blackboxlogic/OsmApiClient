@@ -131,6 +131,32 @@ namespace OsmSharp.IO.API
 			return elements;
 		}
 
+
+		public async Task<Node> GetNodeVersion(long id, int version)
+		{
+			return await GetElementVersion<Node>(id, version);
+		}
+
+		public async Task<Way> GetWayVersion(long id, int version)
+		{
+			return await GetElementVersion<Way>(id, version);
+		}
+
+		public async Task<Relation> GetRelationVersion(long id, int version)
+		{
+			return await GetElementVersion<Relation>(id, version);
+		}
+
+		private async Task<TOsmGeo> GetElementVersion<TOsmGeo>(long id, int version) where TOsmGeo : OsmGeo, new()
+		{
+			var type = new TOsmGeo().Type.ToString().ToLower();
+			var address = BaseAddress + $"0.6/{type}/{id}/{version}";
+			var content = await Get(address);
+			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
+			var element = streamSource.OfType<TOsmGeo>().FirstOrDefault();
+			return element;
+		}
+
 		/// <summary>
 		/// Changeset Read
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fchangeset.2F.23id.3Finclude_discussion.3Dtrue">
