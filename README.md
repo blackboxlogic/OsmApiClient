@@ -26,8 +26,7 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [x] DELETE /api/0.6/[node|way|relation]/#id
 - [x] GET /api/0.6/[node|way|relation]/#id/history
 - [x] GET /api/0.6/[node|way|relation]/#id/#version
-- [ ] GET /api/0.6/[nodes|ways|relations]?#parameters
-- [ ] GET /api/0.6/[node|way|relation]
+- [x] GET /api/0.6/[nodes|ways|relations]?#parameters
 - [ ] GET /api/0.6/[node|way|relation]/#id/relations
 - [ ] GET /api/0.6/node/#id/ways
 - [x] GET /api/0.6/[way|relation]/#id/full
