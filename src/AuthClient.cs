@@ -19,6 +19,7 @@ namespace OsmSharp.IO.API
 		public AuthClient(string baseAddress) : base(baseAddress)
 		{ }
 
+		#region Users
 		public async Task<Permissions> GetPermissions()
 		{
 			var address = BaseAddress + "0.6/permissions";
@@ -33,7 +34,9 @@ namespace OsmSharp.IO.API
 			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
 			return osm.User;
 		}
+		#endregion
 
+		#region Changesets and Element Changes
 		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
 		public async Task<long> CreateChangeset(TagsCollection tags)
 		{
@@ -162,7 +165,9 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/unsubscribe";
 			await Post(address);
 		}
+		#endregion
 
+		#region Traces
 		public async Task<GpxFile[]> GetTraces()
 		{
 			var address = BaseAddress + "0.6/user/gpx_files";
@@ -210,6 +215,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
 			await Delete(address);
 		}
+		#endregion
 
 		protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
 		{

@@ -37,8 +37,8 @@ This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.o
 - [ ] GET /api/0.6/gpx/#id/data
 - [ ] GET /api/0.6/user/gpx_files
 ### User Info
-- [ ] GET /api/0.6/user/#id
-- [ ] GET /api/0.6/users?users=#id1,#id2,...,#idn
+- [x] GET /api/0.6/user/#id
+- [x] GET /api/0.6/users?users=#id1,#id2,...,#idn
 - [x] GET /api/0.6/user/details
 - [ ] GET /api/0.6/user/preferences
 - [ ] GET /api/0.6/user/preferences/[your_key]

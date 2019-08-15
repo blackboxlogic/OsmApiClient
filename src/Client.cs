@@ -7,7 +7,6 @@ using OsmSharp.API;
 using OsmSharp.Streams;
 using OsmSharp.Streams.Complete;
 using OsmSharp.Complete;
-using System.IO;
 using System.Xml.Serialization;
 using OsmSharp.Changesets;
 using System.Text;
@@ -75,6 +74,21 @@ namespace OsmSharp.IO.API
 			return await Get<Osm>(address);
 		}
 
+		public async Task<User> GetUser(long id)
+		{
+			var address = BaseAddress + $"0.6/user/{id}";
+			var osm = await Get<Osm>(address);
+			return osm.User;
+		}
+
+		public async Task<User[]> GetUsers(params long[] ids)
+		{
+			var address = BaseAddress + $"0.6/users?users={string.Join(",", ids)}";
+			var osm = await Get<Osm>(address);
+			return osm.Users;
+		}
+
+		#region Elements
 		public Task<CompleteWay> GetCompleteWay(long id)
 		{
 			return GetCompleteElement<CompleteWay>(id);
@@ -186,22 +200,22 @@ namespace OsmSharp.IO.API
 			return elements.FirstOrDefault();
 		}
 
-		public async Task<Node[]> GetNodes(long[] ids)
+		public async Task<Node[]> GetNodes(params long[] ids)
 		{
 			return await GetElements<Node>(ids);
 		}
 
-		public async Task<Way[]> GetWays(long[] ids)
+		public async Task<Way[]> GetWays(params long[] ids)
 		{
 			return await GetElements<Way>(ids);
 		}
 
-		public async Task<Relation[]> GetRelations(long[] ids)
+		public async Task<Relation[]> GetRelations(params long[] ids)
 		{
 			return await GetElements<Relation>(ids);
 		}
 
-		private async Task<TOsmGeo[]> GetElements<TOsmGeo>(long[] ids) where TOsmGeo : OsmGeo, new()
+		private async Task<TOsmGeo[]> GetElements<TOsmGeo>(params long[] ids) where TOsmGeo : OsmGeo, new()
 		{
 			var idVersions = ids.Select(id => new KeyValuePair<long, int?>(id, null));
 			return await GetElements<TOsmGeo>(idVersions);
@@ -276,7 +290,9 @@ namespace OsmSharp.IO.API
 			var elements = await GetOfType<Way>(address);
 			return elements.ToArray();
 		}
+		#endregion
 
+		#region Changesets
 		/// <summary>
 		/// Changeset Read
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fchangeset.2F.23id.3Finclude_discussion.3Dtrue">
@@ -369,6 +385,7 @@ namespace OsmSharp.IO.API
 		{
 			return await Get<OsmChange>(BaseAddress + $"0.6/changeset/{changesetId}/download");
 		}
+		#endregion
 
 		protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpClient> auth = null) where T : class
 		{
