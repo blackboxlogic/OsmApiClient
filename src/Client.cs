@@ -245,6 +245,36 @@ namespace OsmSharp.IO.API
 			return elements;
 		}
 
+		public async Task<Relation[]> GetNodeRelations(long id)
+		{
+			return await GetElementRelations<Node>(id);
+		}
+
+		public async Task<Relation[]> GetWayRelations(long id)
+		{
+			return await GetElementRelations<Way>(id);
+		}
+
+		public async Task<Relation[]> GetRelationRelations(long id)
+		{
+			return await GetElementRelations<Relation>(id);
+		}
+
+		/// <summary>
+		/// Element Relations
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Relations_for_element:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Frelations">
+		/// GET /api/0.6/[node|way|relation]/#id/relations</see>.
+		/// </summary>
+		private async Task<Relation[]> GetElementRelations<TOsmGeo>(long id) where TOsmGeo : OsmGeo, new()
+		{
+			var type = new TOsmGeo().Type.ToString().ToLower();
+			var address = BaseAddress + $"0.6/{type}/{id}/relations";
+			var content = await Get(address);
+			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
+			var elements = streamSource.OfType<Relation>().ToArray();
+			return elements;
+		}
+
 		/// <summary>
 		/// Changeset Read
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fchangeset.2F.23id.3Finclude_discussion.3Dtrue">
