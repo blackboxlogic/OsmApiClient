@@ -126,10 +126,8 @@ namespace OsmSharp.IO.API
 		{
 			var type = new TOsmGeo().Type.ToString().ToLower();
 			var address = BaseAddress + $"0.6/{type}/{id}";
-			var content = await Get(address);
-			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
-			var element = streamSource.OfType<TOsmGeo>().FirstOrDefault();
-			return element;
+			var elements = await GetOfType<TOsmGeo>(address);
+			return elements.FirstOrDefault();
 		}
 
 		public async Task<Node[]> GetNodeHistory(long id)
@@ -156,10 +154,8 @@ namespace OsmSharp.IO.API
 		{
 			var type = new TOsmGeo().Type.ToString().ToLower();
 			var address = BaseAddress + $"0.6/{type}/{id}/history";
-			var content = await Get(address);
-			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
-			var elements = streamSource.OfType<TOsmGeo>().ToArray();
-			return elements;
+			var elements = await GetOfType<TOsmGeo>(address);
+			return elements.ToArray();
 		}
 
 		public async Task<Node> GetNodeVersion(long id, int version)
@@ -186,10 +182,8 @@ namespace OsmSharp.IO.API
 		{
 			var type = new TOsmGeo().Type.ToString().ToLower();
 			var address = BaseAddress + $"0.6/{type}/{id}/{version}";
-			var content = await Get(address);
-			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
-			var element = streamSource.OfType<TOsmGeo>().FirstOrDefault();
-			return element;
+			var elements = await GetOfType<TOsmGeo>(address);
+			return elements.FirstOrDefault();
 		}
 
 		public async Task<Node[]> GetNodes(long[] ids)
@@ -237,12 +231,10 @@ namespace OsmSharp.IO.API
 		{
 			var type = new TOsmGeo().Type.ToString().ToLower();
 			// For exmple: "12,13,14v1,15v1"
-			var ids = string.Join(",", idVersions.Select(e => e.Value.HasValue ? $"{e.Key}v{e.Value}" : e.Key.ToString()));
-			var address = BaseAddress + $"0.6/{type}s?{type}s={ids}";
-			var content = await Get(address);
-			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
-			var elements = streamSource.OfType<TOsmGeo>().ToArray();
-			return elements;
+			var parameters = string.Join(",", idVersions.Select(e => e.Value.HasValue ? $"{e.Key}v{e.Value}" : e.Key.ToString()));
+			var address = BaseAddress + $"0.6/{type}s?{type}s={parameters}";
+			var elements = await GetOfType<TOsmGeo>(address);
+			return elements.ToArray();
 		}
 
 		public async Task<Relation[]> GetNodeRelations(long id)
@@ -269,10 +261,20 @@ namespace OsmSharp.IO.API
 		{
 			var type = new TOsmGeo().Type.ToString().ToLower();
 			var address = BaseAddress + $"0.6/{type}/{id}/relations";
-			var content = await Get(address);
-			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
-			var elements = streamSource.OfType<Relation>().ToArray();
-			return elements;
+			var elements = await GetOfType<Relation>(address);
+			return elements.ToArray();
+		}
+
+		/// <summary>
+		/// Node Ways
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Ways_for_node:_GET_.2Fapi.2F0.6.2Fnode.2F.23id.2Fways">
+		/// GET /api/0.6/node/#id/ways</see>.
+		/// </summary>
+		public async Task<Way[]> GetNodeWays(long id)
+		{
+			var address = BaseAddress + $"0.6/node/{id}/ways";
+			var elements = await GetOfType<Way>(address);
+			return elements.ToArray();
 		}
 
 		/// <summary>
@@ -296,7 +298,7 @@ namespace OsmSharp.IO.API
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Query:_GET_.2Fapi.2F0.6.2Fchangesets">
 		/// GET /api/0.6/changesets</see>
 		/// </summary>
-		public async Task<Osm> GetChangesets(Bounds bounds, int? userId, string userName,
+		public async Task<Changeset[]> GetChangesets(Bounds bounds, int? userId, string userName,
 			DateTime? minClosedDate, DateTime? maxOpenedDate, bool openOnly, bool closedOnly,
 			long[] changesetIds)
 		{
@@ -325,7 +327,7 @@ namespace OsmSharp.IO.API
 			}
 			else if (userName != null)
 			{
-				address += "display_name=" + userName + '&';
+				address += "display_name=" + System.Web.HttpUtility.UrlEncode(userName) + '&';
 			}
 
 			if (minClosedDate.HasValue)
@@ -354,7 +356,8 @@ namespace OsmSharp.IO.API
 
 			address = address.Substring(0, address.Length - 1); // remove the last &
 
-			return await Get<Osm>(address);
+			var osm = await Get<Osm>(address);
+			return osm.Changesets;
 		}
 
 		/// <summary>
@@ -365,6 +368,14 @@ namespace OsmSharp.IO.API
 		public async Task<OsmChange> GetChangesetDownload(long changesetId)
 		{
 			return await Get<OsmChange>(BaseAddress + $"0.6/changeset/{changesetId}/download");
+		}
+
+		protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpClient> auth = null) where T : class
+		{
+			var content = await Get(address, auth);
+			var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
+			var elements = streamSource.OfType<T>();
+			return elements;
 		}
 
 		protected async Task<T> Get<T>(string address, Action<HttpClient> auth = null) where T : class
