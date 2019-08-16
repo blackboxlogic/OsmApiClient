@@ -3,11 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.1-alpha</Version>
+    <Version>0.0.1-alpha.1</Version>
     <RepositoryUrl>https://github.com/blackboxlogic/OsmApiClient</RepositoryUrl>
     <PackageReleaseNotes></PackageReleaseNotes>
     <PackageProjectUrl />
-    <Description>This is an early beta of what might one day be an OsmApiClient. Don't expect this to work.</Description>
+    <Description>This is a simple C# client to allow using OSM API easily.</Description>
+    <PackageTags>osm openstreetmap client</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
