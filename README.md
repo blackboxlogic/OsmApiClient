@@ -2,6 +2,8 @@
 
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
 
+To work with this project, you will need VisualStudio or VS Code. Pull requests are welcome.
+
 # Supported Opperations:
 - [x] GET /api/versions
 - [x] GET /api/capabilities

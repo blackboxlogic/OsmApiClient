@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionalTests", "FunctionalTests\FunctionalTests.csproj", "{5CF184D1-FD7F-4E23-968C-5E62D47C8763}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmApiClient", "src\OsmApiClient.csproj", "{2D5EBE3D-2EC0-41AE-8326-E866BC2DB23C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmSharp", "core\src\OsmSharp\OsmSharp.csproj", "{4C77EECB-22C9-445B-A218-94A5B54B99DE}"
@@ -13,6 +15,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5CF184D1-FD7F-4E23-968C-5E62D47C8763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CF184D1-FD7F-4E23-968C-5E62D47C8763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CF184D1-FD7F-4E23-968C-5E62D47C8763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CF184D1-FD7F-4E23-968C-5E62D47C8763}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D5EBE3D-2EC0-41AE-8326-E866BC2DB23C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D5EBE3D-2EC0-41AE-8326-E866BC2DB23C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D5EBE3D-2EC0-41AE-8326-E866BC2DB23C}.Release|Any CPU.ActiveCfg = Release|Any CPU

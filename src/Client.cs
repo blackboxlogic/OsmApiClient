@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using OsmSharp.API;
@@ -14,14 +13,6 @@ using System.Collections.Generic;
 
 namespace OsmSharp.IO.API
 {
-	// TODO:
-	// get auth to work
-	// functional tests
-	// logging
-	// cite sources/licenses
-	// track data transfered?
-	// Choose better namespaces?
-	// Make sure Client covers every API action from https://wiki.openstreetmap.org/wiki/API_v0.6#API_calls
 	public class Client
 	{
 		/// <summary>

@@ -106,13 +106,15 @@ namespace OsmSharp.IO.API
 			}
 		}
 
-		public async Task UpdateElement(long changesetId, OsmGeo osmGeo)
+		public async Task<int> UpdateElement(long changesetId, OsmGeo osmGeo)
 		{
 			Validate.ElementHasAVersion(osmGeo);
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
 			var osmRequest = GetOsmRequest(changesetId, osmGeo);
 			var content = new StringContent(osmRequest.SerializeToXml());
-			await Put(address, content);
+			var responseContent = await Put(address, content);
+			var newVersionNumber = await responseContent.ReadAsStringAsync();
+			return int.Parse(newVersionNumber);
 		}
 
 		public async Task<int> DeleteElement(long changesetId, OsmGeo osmGeo)
@@ -137,11 +139,12 @@ namespace OsmSharp.IO.API
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Comment:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fcomment">
 		/// POST /api/0.6/changeset/#id/comment </see>
 		/// </summary>
-		public async Task AddChangesetComment(long changesetId, string text)
+		public async Task<Changeset> AddChangesetComment(long changesetId, string text)
 		{
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/comment";
 			var content = new MultipartFormDataContent() { { new StringContent(text), "text" } };
-			await Post(address, content);
+			var osm = await Post<Osm>(address, content);
+			return osm.Changesets[0];
 		}
 
 		/// <summary>
