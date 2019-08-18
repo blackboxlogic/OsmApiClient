@@ -176,8 +176,8 @@ namespace OsmSharp.IO.API.FunctionalTests
 			var gpxDetails = await client.GetTraceDetails(NewGpx.Id);
 			NotNull(gpxDetails);
 			True(gpxDetails.Description.EndsWith("Updated"));
-			var gpxData = await client.GetTraceData(NewGpx.Id);
-			True(gpxData?.Tracks.Count == 1);
+			var gpxStreamBack = await client.GetTraceData(NewGpx.Id);
+			NotNull(gpxStreamBack);
 			foreach (var trace in myTraces)
 			{
 				await client.DeleteTrace(trace.Id);

@@ -10,10 +10,7 @@ using System.Xml.Serialization;
 using OsmSharp.Changesets;
 using System.Text;
 using System.Collections.Generic;
-using NtsIO = NetTopologySuite.IO;
-using System.Xml;
 using System.IO;
-using System.Text.RegularExpressions;
 
 namespace OsmSharp.IO.API
 {
@@ -29,11 +26,6 @@ namespace OsmSharp.IO.API
 		protected readonly string BaseAddress;
 
 		protected string OsmMaxPrecision = ".#######";
-
-		protected static NtsIO.GpxReaderSettings GpxSettings = new NtsIO.GpxReaderSettings()
-		{
-			IgnoreVersionAttribute = true
-		};
 
 		public Client(string baseAddress)
 		{
@@ -388,16 +380,27 @@ namespace OsmSharp.IO.API
 		#endregion
 
 		#region Traces
-		// Does this return your private tracks if called with auth?
-		public virtual async Task<NtsIO.GpxFile> GetTrackPoints(Bounds bounds, int pageNumber = 0)
+		/// <summary>
+		/// Get GPS Points
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Get_GPS_Points:_Get_.2Fapi.2F0.6.2Ftrackpoints.3Fbbox.3Dleft.2Cbottom.2Cright.2Ctop.26page.3DpageNumber">
+		/// Get /api/0.6/trackpoints?bbox=left,bottom,right,top&page=pageNumber</see>.
+		/// Retrieve the GPS track points that are inside a given bounding box (formatted in a GPX format).
+		/// Warning: GPX version 1.0 is not the current version. Your tools might not support it.
+		/// </summary>
+		/// <returns>A stream of a GPX (version 1.0) file.</returns>
+		public virtual async Task<Stream> GetTrackPoints(Bounds bounds, int pageNumber = 0)
 		{
 			var address = BaseAddress + $"0.6/trackpoints?bbox={ToString(bounds)}&page={pageNumber}";
 			var content = await Get(address);
 			var stream = await content.ReadAsStreamAsync();
-			var gpx = await ParseGpx(stream);
-			return gpx;
+			return stream;
 		}
 
+		/// <summary>
+		/// Download Metadata
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Download_Metadata:_GET_.2Fapi.2F0.6.2Fgpx.2F.23id.2Fdetails">
+		/// GET /api/0.6/gpx/#id/details</see>.
+		/// </summary>
 		public virtual async Task<GpxFile> GetTraceDetails(int id)
 		{
 			var address = BaseAddress + $"0.6/gpx/{id}/details";
@@ -405,13 +408,18 @@ namespace OsmSharp.IO.API
 			return osm.GpxFiles[0];
 		}
 
-		public virtual async Task<NtsIO.GpxFile> GetTraceData(int id)
+		/// <summary>
+		/// Download Data
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Download_Data:_GET_.2Fapi.2F0.6.2Fgpx.2F.23id.2Fdata">
+		/// GET /api/0.6/gpx/#id/data</see>.
+		/// </summary>
+		/// <returns>A stream of a GPX (version 1.0) file.</returns>
+		public virtual async Task<Stream> GetTraceData(int id)
 		{
 			var address = BaseAddress + $"0.6/gpx/{id}/data";
 			var content = await Get(address);
 			var stream = await content.ReadAsStreamAsync();
-			var gpx = await ParseGpx(stream);
-			return gpx;
+			return stream;
 		}
 		#endregion
 
@@ -458,24 +466,6 @@ namespace OsmSharp.IO.API
 			x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
 
 			return x.ToString();
-		}
-
-		public static async Task<NtsIO.GpxFile> ParseGpx(Stream stream)
-		{
-			// https://github.com/openstreetmap/openstreetmap-website/issues/2350
-			// <yuck>
-			var badXmlns = @"xmlns=""http://www.topografix.com/GPX/1/0""";
-			var goodXmlns = @"xmlns=""http://www.topografix.com/GPX/1/1""";
-			var fixer = new StreamReader(stream);
-			var xml = await fixer.ReadToEndAsync();
-			var regex = new Regex(Regex.Escape(badXmlns));
-			xml = regex.Replace(xml, goodXmlns, 1);
-			stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
-			// </yuck>
-
-			var reader = new XmlTextReader(stream);
-			var gpx = NtsIO.GpxFile.ReadFrom(reader, GpxSettings);
-			return gpx;
 		}
 	}
 }

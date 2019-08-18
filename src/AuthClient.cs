@@ -10,7 +10,6 @@ using OsmSharp.Tags;
 using OsmSharp.Complete;
 using System.Xml.Serialization;
 using OsmSharp.IO.Xml;
-using NtsIO = NetTopologySuite.IO;
 
 namespace OsmSharp.IO.API
 {
@@ -215,13 +214,12 @@ namespace OsmSharp.IO.API
 			return osm.GpxFiles[0];
 		}
 
-		public override async Task<NtsIO.GpxFile> GetTraceData(int id)
+		public override async Task<Stream> GetTraceData(int id)
 		{
 			var address = BaseAddress + $"0.6/gpx/{id}/data";
 			var content = await Get(address, c => AddAuthentication(c, address));
 			var stream = await content.ReadAsStreamAsync();
-			var gpx = await ParseGpx(stream);
-			return gpx;
+			return stream;
 		}
 		#endregion
 
