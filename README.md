@@ -2,7 +2,8 @@
 
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
 
-To work with this project, you will need VisualStudio or VS Code. Pull requests are welcome.
+To work with this project, you will need VisualStudio or VS Code.
+Pull requests are welcome.
 
 # Supported Opperations:
 - [x] GET /api/versions
@@ -33,11 +34,13 @@ To work with this project, you will need VisualStudio or VS Code. Pull requests 
 - [x] GET /api/0.6/node/#id/ways
 - [x] GET /api/0.6/[way|relation]/#id/full
 ### Gpx Files
-- [ ] GET /api/0.6/trackpoints?bbox=left,bottom,right,top&page=pageNumber
-- [ ] POST /api/0.6/gpx/create
-- [ ] GET /api/0.6/gpx/#id/details
-- [ ] GET /api/0.6/gpx/#id/data
-- [ ] GET /api/0.6/user/gpx_files
+- [x] GET /api/0.6/trackpoints?bbox=left,bottom,right,top&page=pageNumber
+- [x] GET /api/0.6/user/gpx_files
+- [x] GET /api/0.6/gpx/#id/details
+- [x] GET /api/0.6/gpx/#id/data
+- [x] POST /api/0.6/gpx/create
+- [x] PUT /api/0.6/gpx/#id
+- [x] DELETE /api/0.6/gpx/#id
 ### User Info
 - [x] GET /api/0.6/user/#id
 - [x] GET /api/0.6/users?users=#id1,#id2,...,#idn

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.0" creator="OpenStreetMap.org" xmlns="http://www.topografix.com/GPX/1/0">
+	<trk>
+		<name>test.gpx</name>
+		<desc>A file for testing upload functionality.</desc>
+		<url>https://github.com/blackboxlogic/OsmApiClient</url>
+		<trkseg>
+			<trkpt lat="51.6616100" lon="0.0534560">
+				<time>2019-06-26T14:27:58Z</time>
+			</trkpt>
+			<trkpt lat="51.5685517" lon="0.0411966">
+				<time>2019-04-26T12:18:42Z</time>
+			</trkpt>
+		</trkseg>
+	</trk>
+</gpx>

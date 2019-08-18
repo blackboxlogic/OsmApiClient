@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -13,10 +14,18 @@ namespace OsmSharp.IO.API.FunctionalTests
 	{
 		private static Bounds WashingtonDC = new Bounds()
 		{
-			MaxLatitude = 38.907734f,
-			MaxLongitude = -77.03599990f,
+			MinLongitude = -77.0371918f,
 			MinLatitude = 38.9067186f,
-			MinLongitude = -77.0371918f
+			MaxLongitude = -77.03599990f,
+			MaxLatitude = 38.907734f,
+		};
+
+		private static Bounds TraceArea = new Bounds()
+		{
+			MinLongitude = 0,
+			MinLatitude = 51.5f,
+			MaxLongitude = 0.25f,
+			MaxLatitude = 51.75f,
 		};
 
 		private static TagsCollection ChangeSetTags = new TagsCollection()
@@ -24,6 +33,13 @@ namespace OsmSharp.IO.API.FunctionalTests
 			new Tag("comment", "Running a functional test of an automated system."),
 			new Tag("created_by", "https://github.com/blackboxlogic/OsmApiClient"),
 			new Tag("bot", "yes")
+		};
+
+		private static GpxFile NewGpx = new GpxFile()
+		{
+			Name = "test.gpx",
+			Description = "A file for testing upload functionality.",
+			Visibility = Visibility.Public,
 		};
 
 		public static void Main()
@@ -99,6 +115,8 @@ namespace OsmSharp.IO.API.FunctionalTests
 			NotNull(user);
 			var users = await client.GetUsers(node.UserId.Value, node.UserId.Value + 1);
 			True(users?.Any());
+			var gpx = await client.GetTrackPoints(TraceArea);
+			NotNull(gpx);
 		}
 
 		private static async Task TestAuthClient(AuthClient client)
@@ -145,6 +163,27 @@ namespace OsmSharp.IO.API.FunctionalTests
 			await client.ChangesetUnsubscribe(changesetId);
 			await client.ChangesetSubscribe(changesetId);
 			await client.ChangesetUnsubscribe(changesetId);
+
+			using (var gpxStream = File.Open("test.gpx", FileMode.Open))
+			{
+				NewGpx.Id = await client.CreateTrace(NewGpx, gpxStream);
+				True(NewGpx.Id > 0);
+			}
+			NewGpx.Description += "Updated";
+			await client.UpdateTrace(NewGpx);
+			var myTraces = await client.GetTraces();
+			True(myTraces?.Length > 0);
+			var gpxDetails = await client.GetTraceDetails(NewGpx.Id);
+			NotNull(gpxDetails);
+			True(gpxDetails.Description.EndsWith("Updated"));
+			var gpxData = await client.GetTraceData(NewGpx.Id);
+			True(gpxData?.Tracks.Count == 1);
+			foreach (var trace in myTraces)
+			{
+				await client.DeleteTrace(trace.Id);
+			}
+			myTraces = await client.GetTraces();
+			True(myTraces?.Length == 0);
 		}
 
 		private static void NotNull(params object[] os)

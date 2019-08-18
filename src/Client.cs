@@ -10,6 +10,10 @@ using System.Xml.Serialization;
 using OsmSharp.Changesets;
 using System.Text;
 using System.Collections.Generic;
+using NtsIO = NetTopologySuite.IO;
+using System.Xml;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace OsmSharp.IO.API
 {
@@ -24,7 +28,12 @@ namespace OsmSharp.IO.API
 		/// </example>
 		protected readonly string BaseAddress;
 
-		private string OsmMaxPrecision = ".#######";
+		protected string OsmMaxPrecision = ".#######";
+
+		protected static NtsIO.GpxReaderSettings GpxSettings = new NtsIO.GpxReaderSettings()
+		{
+			IgnoreVersionAttribute = true
+		};
 
 		public Client(string baseAddress)
 		{
@@ -378,6 +387,34 @@ namespace OsmSharp.IO.API
 		}
 		#endregion
 
+		#region Traces
+		// Does this return your private tracks if called with auth?
+		public virtual async Task<NtsIO.GpxFile> GetTrackPoints(Bounds bounds, int pageNumber = 0)
+		{
+			var address = BaseAddress + $"0.6/trackpoints?bbox={ToString(bounds)}&page={pageNumber}";
+			var content = await Get(address);
+			var stream = await content.ReadAsStreamAsync();
+			var gpx = await ParseGpx(stream);
+			return gpx;
+		}
+
+		public virtual async Task<GpxFile> GetTraceDetails(int id)
+		{
+			var address = BaseAddress + $"0.6/gpx/{id}/details";
+			var osm = await Get<Osm>(address);
+			return osm.GpxFiles[0];
+		}
+
+		public virtual async Task<NtsIO.GpxFile> GetTraceData(int id)
+		{
+			var address = BaseAddress + $"0.6/gpx/{id}/data";
+			var content = await Get(address);
+			var stream = await content.ReadAsStreamAsync();
+			var gpx = await ParseGpx(stream);
+			return gpx;
+		}
+		#endregion
+
 		protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpClient> auth = null) where T : class
 		{
 			var content = await Get(address, auth);
@@ -421,6 +458,24 @@ namespace OsmSharp.IO.API
 			x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
 
 			return x.ToString();
+		}
+
+		public static async Task<NtsIO.GpxFile> ParseGpx(Stream stream)
+		{
+			// https://github.com/openstreetmap/openstreetmap-website/issues/2350
+			// <yuck>
+			var badXmlns = @"xmlns=""http://www.topografix.com/GPX/1/0""";
+			var goodXmlns = @"xmlns=""http://www.topografix.com/GPX/1/1""";
+			var fixer = new StreamReader(stream);
+			var xml = await fixer.ReadToEndAsync();
+			var regex = new Regex(Regex.Escape(badXmlns));
+			xml = regex.Replace(xml, goodXmlns, 1);
+			stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+			// </yuck>
+
+			var reader = new XmlTextReader(stream);
+			var gpx = NtsIO.GpxFile.ReadFrom(reader, GpxSettings);
+			return gpx;
 		}
 	}
 }

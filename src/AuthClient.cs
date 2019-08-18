@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -11,6 +10,7 @@ using OsmSharp.Tags;
 using OsmSharp.Complete;
 using System.Xml.Serialization;
 using OsmSharp.IO.Xml;
+using NtsIO = NetTopologySuite.IO;
 
 namespace OsmSharp.IO.API
 {
@@ -178,45 +178,50 @@ namespace OsmSharp.IO.API
 			return osm.GpxFiles ?? new GpxFile[0];
 		}
 
-		public async Task CreateTrace(string fileName, MemoryStream fileStream)
+		public async Task<int> CreateTrace(GpxFile gpx, Stream fileStream)
 		{
 			var address = BaseAddress + "0.6/gpx/create";
-
-			var parameters = new Dictionary<string, string>
-				{
-					{ "description", Path.GetFileNameWithoutExtension(fileName) },
-					{ "visibility", "public" },
-					{ "tags", "" },
-				};
-			var multipartFormDataContent = new MultipartFormDataContent();
-			foreach (var keyValuePair in parameters)
-			{
-				multipartFormDataContent.Add(new StringContent(keyValuePair.Value),
-					$"\"{keyValuePair.Key}\"");
-			}
-			var streamContent = new StreamContent(fileStream);
-			multipartFormDataContent.Add(streamContent, "file", Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(fileName)));
-
-			await Post(address, multipartFormDataContent);
+			var form = new MultipartFormDataContent();
+			form.Add(new StringContent(gpx.Description), "\"description\"");
+			form.Add(new StringContent(gpx.Visibility.ToString().ToLower()), "\"visibility\"");
+			var tags = string.Join(",", gpx.Tags ?? new string[0]);
+			form.Add(new StringContent(tags), "\"tags\"");
+			var stream = new StreamContent(fileStream);
+			var cleanName = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(gpx.Name));
+			form.Add(stream, "file", cleanName);
+			var content = await Post(address, form);
+			var id = await content.ReadAsStringAsync();
+			return int.Parse(id);
 		}
 
-		// This isn't listed in the documentation?
 		public async Task UpdateTrace(GpxFile trace)
 		{
 			var address = BaseAddress + $"0.6/gpx/{trace.Id}";
-			var osmRequest = new Osm
-			{
-				GpxFiles = new[] { trace }
-			};
-			var content = new StringContent(osmRequest.SerializeToXml());
+			var osm = new Osm { GpxFiles = new[] { trace } };
+			var content = new StringContent(osm.SerializeToXml());
 			await Put(address, content);
 		}
 
-		// This isn't listed in the documentation?
 		public async Task DeleteTrace(long traceId)
 		{
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
 			await Delete(address);
+		}
+
+		public override async Task<GpxFile> GetTraceDetails(int id)
+		{
+			var address = BaseAddress + $"0.6/gpx/{id}/details";
+			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
+			return osm.GpxFiles[0];
+		}
+
+		public override async Task<NtsIO.GpxFile> GetTraceData(int id)
+		{
+			var address = BaseAddress + $"0.6/gpx/{id}/data";
+			var content = await Get(address, c => AddAuthentication(c, address));
+			var stream = await content.ReadAsStreamAsync();
+			var gpx = await ParseGpx(stream);
+			return gpx;
 		}
 		#endregion
 
@@ -243,24 +248,14 @@ namespace OsmSharp.IO.API
 
 		protected async Task<T> Post<T>(string address, HttpContent requestContent = null) where T : class
 		{
-			requestContent = requestContent ?? new StringContent("");
-
-			var client = new HttpClient();
-			AddAuthentication(client, address, "Post");
-			var response = await client.PostAsync(address, requestContent);
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-			}
-
-			var stream = await response.Content.ReadAsStreamAsync();
+			var responseContent = await Post(address, requestContent);
+			var stream = await responseContent.ReadAsStreamAsync();
 			var serializer = new XmlSerializer(typeof(T));
 			var content = serializer.Deserialize(stream) as T;
 			return content;
 		}
 
-		protected async Task Post(string address, HttpContent requestContent = null)
+		protected async Task<HttpContent> Post(string address, HttpContent requestContent = null)
 		{
 			requestContent = requestContent ?? new StringContent("");
 
@@ -272,6 +267,7 @@ namespace OsmSharp.IO.API
 				var errorContent = await response.Content.ReadAsStringAsync();
 				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
 			}
+			return response.Content;
 		}
 
 		protected async Task<T> Put<T>(string address, HttpContent requestContent = null) where T : class

@@ -3,15 +3,20 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.1-alpha.1</Version>
+    <Version>0.0.1-beta</Version>
     <RepositoryUrl>https://github.com/blackboxlogic/OsmApiClient</RepositoryUrl>
-    <PackageReleaseNotes></PackageReleaseNotes>
-    <PackageProjectUrl />
+    <PackageReleaseNotes>Added support for GPX trace files.</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/blackboxlogic/OsmApiClient</PackageProjectUrl>
     <Description>This is a simple C# client to allow using OSM API easily.</Description>
-    <PackageTags>osm openstreetmap client</PackageTags>
+    <PackageTags>osm;openstreetmap;client</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright 2019 Alex Hennings &amp; Harel Mazor</Copyright>
+    <Authors>Alex Hennings &amp; Harel Mazor</Authors>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NetTopologySuite.IO.GPX" Version="0.6.0" />
     <PackageReference Include="OAuth.DotNetCore" Version="3.0.1" />
   </ItemGroup>
 
