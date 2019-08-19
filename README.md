@@ -58,3 +58,4 @@ Pull requests are welcome.
 - [ ] POST /api/0.6/notes/#id/close
 - [ ] POST /api/0.6/notes/#id/reopen
 - [ ] GET /api/0.6/notes/search
+- [ ] GET /api/0.6/notes/feed?bbox=left,bottom,right,top

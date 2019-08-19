@@ -401,10 +401,10 @@ namespace OsmSharp.IO.API
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Download_Metadata:_GET_.2Fapi.2F0.6.2Fgpx.2F.23id.2Fdetails">
 		/// GET /api/0.6/gpx/#id/details</see>.
 		/// </summary>
-		public virtual async Task<GpxFile> GetTraceDetails(int id)
+		public async Task<GpxFile> GetTraceDetails(int id)
 		{
 			var address = BaseAddress + $"0.6/gpx/{id}/details";
-			var osm = await Get<Osm>(address);
+			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
 			return osm.GpxFiles[0];
 		}
 
@@ -412,14 +412,30 @@ namespace OsmSharp.IO.API
 		/// Download Data
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Download_Data:_GET_.2Fapi.2F0.6.2Fgpx.2F.23id.2Fdata">
 		/// GET /api/0.6/gpx/#id/data</see>.
+		/// This will return exactly what was uploaded, which might not be a gpx file (it could be a zip etc.)
 		/// </summary>
 		/// <returns>A stream of a GPX (version 1.0) file.</returns>
-		public virtual async Task<Stream> GetTraceData(int id)
+		public async Task<TypedStream> GetTraceData(int id)
 		{
 			var address = BaseAddress + $"0.6/gpx/{id}/data";
-			var content = await Get(address);
-			var stream = await content.ReadAsStreamAsync();
-			return stream;
+			var content = await Get(address, c => AddAuthentication(c, address));
+			return await TypedStream.Create(content);
+		}
+
+		public class TypedStream
+		{
+			public Stream Stream;
+			public string FileName;
+			public System.Net.Http.Headers.MediaTypeHeaderValue ContentType;
+
+			internal static async Task<TypedStream> Create(HttpContent content)
+			{
+				var typed = new TypedStream();
+				typed.FileName = content.Headers.ContentDisposition.FileName.Trim('"');
+				typed.ContentType = content.Headers.ContentType;
+				typed.Stream = await content.ReadAsStreamAsync();
+				return typed;
+			}
 		}
 		#endregion
 
@@ -467,6 +483,9 @@ namespace OsmSharp.IO.API
 
 			return x.ToString();
 		}
+
+		// For GetTraceDetails() and GetTraceData(), which may be authenticated or not.
+		protected virtual void AddAuthentication(HttpClient client, string url, string method = "GET") { }
 	}
 }
 

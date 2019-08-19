@@ -206,21 +206,6 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
 			await Delete(address);
 		}
-
-		public override async Task<GpxFile> GetTraceDetails(int id)
-		{
-			var address = BaseAddress + $"0.6/gpx/{id}/details";
-			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
-			return osm.GpxFiles[0];
-		}
-
-		public override async Task<Stream> GetTraceData(int id)
-		{
-			var address = BaseAddress + $"0.6/gpx/{id}/data";
-			var content = await Get(address, c => AddAuthentication(c, address));
-			var stream = await content.ReadAsStreamAsync();
-			return stream;
-		}
 		#endregion
 
 		protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
@@ -322,8 +307,6 @@ namespace OsmSharp.IO.API
 
 			return response.Content;
 		}
-
-		protected abstract void AddAuthentication(HttpClient client, string url, string method = "GET");
 	}
 }
 
