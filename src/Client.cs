@@ -11,6 +11,7 @@ using OsmSharp.Changesets;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
+using System.Web;
 
 namespace OsmSharp.IO.API
 {
@@ -66,6 +67,11 @@ namespace OsmSharp.IO.API
 			return await Get<Osm>(address);
 		}
 
+		/// <summary>
+		/// Details of a user
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Details_of_a_user">
+		/// GET /api/0.6/user/#id</see>.
+		/// </summary>
 		public async Task<User> GetUser(long id)
 		{
 			var address = BaseAddress + $"0.6/user/{id}";
@@ -73,6 +79,11 @@ namespace OsmSharp.IO.API
 			return osm.User;
 		}
 
+		/// <summary>
+		/// Details of multiple users
+		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Details_of_multiple_users">
+		/// GET /api/0.6/users?users=#id1,#id2,...,#idn</see>.
+		/// </summary>
 		public async Task<User[]> GetUsers(params long[] ids)
 		{
 			var address = BaseAddress + $"0.6/users?users={string.Join(",", ids)}";
@@ -306,64 +317,30 @@ namespace OsmSharp.IO.API
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Query:_GET_.2Fapi.2F0.6.2Fchangesets">
 		/// GET /api/0.6/changesets</see>
 		/// </summary>
-		public async Task<Changeset[]> GetChangesets(Bounds bounds, int? userId, string userName,
+		public async Task<Changeset[]> QueryChangesets(Bounds bounds, long? userId, string userName,
 			DateTime? minClosedDate, DateTime? maxOpenedDate, bool openOnly, bool closedOnly,
-			long[] changesetIds)
+			long[] ids)
 		{
 			if (userId.HasValue && userName != null)
-			{
 				throw new Exception("Query can only specify userID OR userName, not both.");
-			}
 			if (openOnly && closedOnly)
-			{
 				throw new Exception("Query can only specify openOnly OR closedOnly, not both.");
-			}
 			if (!minClosedDate.HasValue && maxOpenedDate.HasValue)
-			{
 				throw new Exception("Query must specify minClosedDate if maxOpenedDate is specified.");
-			}
 
-			var address = BaseAddress + "0.6/changesets?";
-			if (bounds != null)
-			{
-				address += "bbox=" + ToString(bounds) + '&';
-			}
+			var query = HttpUtility.ParseQueryString(string.Empty);
+			if (bounds != null) query["bbox"] = ToString(bounds);
+			if (userId.HasValue) query["user"] = userId.ToString();
+			if (userName != null) query["display_name"] = userName;
+			if (minClosedDate.HasValue) query["time"] = minClosedDate.ToString();
+			if (maxOpenedDate.HasValue) query.Add("time", maxOpenedDate.ToString());
+			if (openOnly) query["open"] = "true";
+			if (closedOnly) query["closed"] = "true";
+			if (ids != null)
+				foreach (var id in ids)
+					query.Add("changesets", id.ToString());
 
-			if (userId.HasValue)
-			{
-				address += "user=" + userId + '&';
-			}
-			else if (userName != null)
-			{
-				address += "display_name=" + System.Web.HttpUtility.UrlEncode(userName) + '&';
-			}
-
-			if (minClosedDate.HasValue)
-			{
-				address += "time=" + minClosedDate;
-				if (maxOpenedDate.HasValue)
-				{
-					address += "," + maxOpenedDate;
-				}
-				address += '&';
-			}
-
-			if (openOnly)
-			{
-				address += "open=true&";
-			}
-			else if (closedOnly)
-			{
-				address += "closed=true&";
-			}
-
-			if (changesetIds != null)
-			{
-				address += $"changesets={string.Join(",", changesetIds)}&";
-			}
-
-			address = address.Substring(0, address.Length - 1); // remove the last &
-
+			var address = BaseAddress + "0.6/changesets?" + query.ToString();
 			var osm = await Get<Osm>(address);
 			return osm.Changesets;
 		}

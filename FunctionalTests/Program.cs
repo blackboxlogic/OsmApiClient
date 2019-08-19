@@ -109,8 +109,14 @@ namespace OsmSharp.IO.API.FunctionalTests
 			var changeset = await client.GetChangeset(node.ChangeSetId.Value);
 			var changesetWithDiscussion = await client.GetChangeset(node.ChangeSetId.Value, true);
 			NotNull(changeset, changesetWithDiscussion?.Discussion);
-			var changesets = await client.GetChangesets(null, null, node.UserName, null, null, false, false, null);
+			var changesets = await client.QueryChangesets(WashingtonDC, null, null, null, null, false, false, null);
 			True(changesets?.Any());
+			changesets = await client.QueryChangesets(null, node.UserId, null, null, null, false, false, null);
+			True(changesets?.Any());
+			changesets = await client.QueryChangesets(null, null, node.UserName, null, null, false, false, null);
+			True(changesets?.Any());
+			changesets = await client.QueryChangesets(null, null, null, null, null, false, false, new long[] { 151176, 151177 });
+			True(changesets.Length == 2);
 			var user = await client.GetUser(node.UserId.Value);
 			NotNull(user);
 			var users = await client.GetUsers(node.UserId.Value, node.UserId.Value + 1);
