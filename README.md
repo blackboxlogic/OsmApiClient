@@ -45,10 +45,11 @@ Pull requests are welcome.
 - [x] GET /api/0.6/user/#id
 - [x] GET /api/0.6/users?users=#id1,#id2,...,#idn
 - [x] GET /api/0.6/user/details
-- [ ] GET /api/0.6/user/preferences
-- [ ] GET /api/0.6/user/preferences/[your_key]
-- [ ] PUT /api/0.6/user/preferences/[your_key]
-- [ ] DELETE /api/0.6/user/preferences/[your_key]
+- [x] GET /api/0.6/user/preferences
+- [x] PUT /api/0.6/user/preferences
+- [x] GET /api/0.6/user/preferences/[your_key]
+- [x] PUT /api/0.6/user/preferences/[your_key]
+- [x] DELETE /api/0.6/user/preferences/[your_key]
 ### Notes
 - [ ] GET /api/0.6/notes
 - [ ] GET /api/0.6/notes?bbox=left,bottom,right,top

@@ -336,9 +336,7 @@ namespace OsmSharp.IO.API
 			if (maxOpenedDate.HasValue) query.Add("time", maxOpenedDate.ToString());
 			if (openOnly) query["open"] = "true";
 			if (closedOnly) query["closed"] = "true";
-			if (ids != null)
-				foreach (var id in ids)
-					query.Add("changesets", id.ToString());
+			if (ids != null) query["changesets"] = string.Join(",", ids);
 
 			var address = BaseAddress + "0.6/changesets?" + query.ToString();
 			var osm = await Get<Osm>(address);

@@ -33,6 +33,42 @@ namespace OsmSharp.IO.API
 			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
 			return osm.User;
 		}
+
+		public async Task<Preference[]> GetUserPreferences()
+		{
+			var address = BaseAddress + "0.6/user/preferences";
+			var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
+			return osm.Preferences.UserPreferences;
+		}
+
+		public async Task SetUserPreferences(Preferences preferences)
+		{
+			var address = BaseAddress + "0.6/user/preferences";
+			var osm = new Osm() { Preferences = preferences };
+			var content = new StringContent(osm.SerializeToXml());
+			await Put(address, content);
+		}
+
+		public async Task<string> GetUserPreference(string key)
+		{
+			var address = BaseAddress + $"0.6/user/preferences/{key}";
+			var content = await Get(address, c => AddAuthentication(c, address));
+			var value = await content.ReadAsStringAsync();
+			return value;
+		}
+
+		public async Task SetUserPreference(string key, string value)
+		{
+			var address = BaseAddress + $"0.6/user/preferences/{key}";
+			var content = new StringContent(value);
+			await Put(address, content);
+		}
+
+		public async Task DeleteUserPreference(string key)
+		{
+			var address = BaseAddress + $"0.6/user/preferences/{key}";
+			await Delete(address);
+		}
 		#endregion
 
 		#region Changesets and Element Changes
@@ -210,20 +246,18 @@ namespace OsmSharp.IO.API
 
 		protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
 		{
+			osmGeo.ChangeSetId = changesetId;
 			var osm = new Osm();
 			switch (osmGeo.Type)
 			{
 				case OsmGeoType.Node:
 					osm.Nodes = new[] { osmGeo as Node };
-					osm.Nodes.First().ChangeSetId = changesetId;
 					break;
 				case OsmGeoType.Way:
 					osm.Ways = new[] { osmGeo as Way };
-					osm.Ways.First().ChangeSetId = changesetId;
 					break;
 				case OsmGeoType.Relation:
 					osm.Relations = new[] { osmGeo as Relation };
-					osm.Relations.First().ChangeSetId = changesetId;
 					break;
 			}
 			return osm;

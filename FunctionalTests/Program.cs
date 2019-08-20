@@ -190,6 +190,16 @@ namespace OsmSharp.IO.API.FunctionalTests
 			}
 			myTraces = await client.GetTraces();
 			True(myTraces?.Length == 0);
+
+			var preferences = await client.GetUserPreferences();
+			NotNull(preferences);
+			await client.SetUserPreference("testKey", "testValue");
+			var value = await client.GetUserPreference("testKey");
+			True(value == "testValue");
+			preferences = await client.GetUserPreferences();
+			NotNull(preferences);
+			True(preferences.Any(p => p.Key == "testKey" && p.Value == "testValue"));
+			await client.DeleteUserPreference("testKey");
 		}
 
 		private static void NotNull(params object[] os)
