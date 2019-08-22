@@ -28,6 +28,14 @@ namespace OsmSharp.IO.API.FunctionalTests
 			MaxLatitude = 51.75f,
 		};
 
+		private static Bounds NoteBounds = new Bounds()
+		{
+			MinLongitude = 0,
+			MinLatitude = 50f,
+			MaxLongitude = 5f,
+			MaxLatitude = 55f,
+		};
+
 		private static TagsCollection ChangeSetTags = new TagsCollection()
 		{
 			new Tag("comment", "Running a functional test of an automated system."),
@@ -123,6 +131,31 @@ namespace OsmSharp.IO.API.FunctionalTests
 			True(users?.Any());
 			var gpx = await client.GetTrackPoints(TraceArea);
 			NotNull(gpx);
+
+			var notes = await client.GetNotes(NoteBounds);
+			True(notes?.Length > 0, notes[0]?.Id.HasValue);
+			var noteId = notes[0].Id.Value;
+			var note = await client.GetNote(noteId);
+			True(note?.Id == noteId);
+			var feed = await client.GetNotesRssFeed(NoteBounds);
+			NotNull(feed);
+			await client.QueryNotes("ThisIsANote", null, null, null, null, null, null);
+			await client.QueryNotes("ThisIsANote", node.UserId, null, null, null, null, null);
+			await client.QueryNotes("ThisIsANote", null, node.UserName, null, null, null, null);
+			await client.QueryNotes("ThisIsANote", null, null, 100, null, null, null);
+			await client.QueryNotes("ThisIsANote", null, null, null, 1, null, null);
+			await client.QueryNotes("ThisIsANote", null, null, null, null, DateTime.Now.Subtract(TimeSpan.FromDays(100)), null);
+			await client.QueryNotes("ThisIsANote", null, null, null, null, null, DateTime.Now.Subtract(TimeSpan.FromDays(2)));
+			var newNote = await client.CreateNote(10.1f, 10.2f, "HelloWorld");
+			True(newNote?.Comments?.Comments?.FirstOrDefault()?.Text == "HelloWorld",
+				newNote?.Comments?.Comments?.FirstOrDefault()?.Action == Note.Comment.CommentAction.Opened,
+				newNote?.Comments?.Comments?.FirstOrDefault()?.UserId == null,
+				newNote?.Status == Note.NoteStatus.Open);
+			newNote = await client.CommentNote(newNote.Id.Value, "second");
+			True(newNote?.Comments?.Comments?.LastOrDefault()?.Text == "second",
+				newNote?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Commented,
+				newNote?.Comments?.Comments?.FirstOrDefault()?.UserId == null,
+				newNote?.Status == Note.NoteStatus.Open);
 		}
 
 		private static async Task TestAuthClient(AuthClient client)
@@ -200,6 +233,27 @@ namespace OsmSharp.IO.API.FunctionalTests
 			NotNull(preferences);
 			True(preferences.Any(p => p.Key == "testKey" && p.Value == "testValue"));
 			await client.DeleteUserPreference("testKey");
+
+			var note = await client.CreateNote(10.1f, 10.2f, "HelloWorld");
+			True(note?.Comments?.Comments?.FirstOrDefault()?.Text == "HelloWorld",
+				note?.Comments?.Comments?.FirstOrDefault()?.Action == Note.Comment.CommentAction.Opened,
+				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+				note?.Status == Note.NoteStatus.Open);
+			note = await client.CommentNote(note.Id.Value, "second");
+			True(note?.Comments?.Comments?.LastOrDefault()?.Text == "second",
+				note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Commented,
+				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+				note?.Status == Note.NoteStatus.Open);
+			note = await client.CloseNote(note.Id.Value, "closing");
+			True(note?.Comments?.Comments?.LastOrDefault()?.Text == "closing",
+				note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Closed,
+				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+				note?.Status == Note.NoteStatus.Closed);
+			note = await client.ReOpenNote(note.Id.Value, "reopening");
+			True(note?.Comments?.Comments?.LastOrDefault()?.Text == "reopening",
+				note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.ReOpened,
+				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+				note?.Status == Note.NoteStatus.Open);
 		}
 
 		private static void NotNull(params object[] os)

@@ -47,16 +47,15 @@ Pull requests are welcome.
 - [x] GET /api/0.6/user/details
 - [x] GET /api/0.6/user/preferences
 - [x] PUT /api/0.6/user/preferences
-- [x] GET /api/0.6/user/preferences/[your_key]
-- [x] PUT /api/0.6/user/preferences/[your_key]
-- [x] DELETE /api/0.6/user/preferences/[your_key]
+- [x] GET /api/0.6/user/preferences/#key
+- [x] PUT /api/0.6/user/preferences/#key
+- [x] DELETE /api/0.6/user/preferences/#key
 ### Notes
-- [ ] GET /api/0.6/notes
-- [ ] GET /api/0.6/notes?bbox=left,bottom,right,top
-- [ ] GET /api/0.6/notes/#id
-- [ ] POST /api/0.6/notes
-- [ ] POST /api/0.6/notes/#id/comment
-- [ ] POST /api/0.6/notes/#id/close
-- [ ] POST /api/0.6/notes/#id/reopen
-- [ ] GET /api/0.6/notes/search
-- [ ] GET /api/0.6/notes/feed?bbox=left,bottom,right,top
+- [x] GET /api/0.6/notes?#parameters
+- [x] GET /api/0.6/notes/#id
+- [x] POST /api/0.6/notes
+- [x] POST /api/0.6/notes/#id/comment
+- [x] POST /api/0.6/notes/#id/close
+- [x] POST /api/0.6/notes/#id/reopen
+- [x] GET /api/0.6/notes/search?#parameters
+- [x] GET /api/0.6/notes/feed?bbox=left,bottom,right,top

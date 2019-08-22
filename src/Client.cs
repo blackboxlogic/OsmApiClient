@@ -26,7 +26,8 @@ namespace OsmSharp.IO.API
 		/// </example>
 		protected readonly string BaseAddress;
 
-		protected string OsmMaxPrecision = ".#######";
+		// Prevent scientific notation in a url.
+		protected string OsmMaxPrecision = "0.########";
 
 		public Client(string baseAddress)
 		{
@@ -414,6 +415,96 @@ namespace OsmSharp.IO.API
 		}
 		#endregion
 
+		#region Notes
+		public async Task<Note> GetNote(long id)
+		{
+			var address = BaseAddress + $"0.6/notes/{id}";
+			var osm = await Get<Osm>(address);
+			return osm.Notes?.FirstOrDefault();
+		}
+
+		/// <param name="limit">Must be between 1 and 10,000.</param>
+		/// <param name="maxClosedDays">0 means only open notes. -1 mean all (open and closed) notes.</param>
+		public async Task<Note[]> GetNotes(Bounds bounds, int limit = 100, int maxClosedDays = 7)
+		{
+			string format = ".xml";
+			var address = BaseAddress + $"0.6/notes{format}?bbox={ToString(bounds)}&limit={limit}&closed={maxClosedDays}";
+			var osm = await Get<Osm>(address);
+			return osm.Notes;
+		}
+
+		public async Task<Stream> GetNotesRssFeed(Bounds bounds)
+		{
+			var address = BaseAddress + $"0.6/notes/feed?bbox={ToString(bounds)}";
+			var content = await Get(address);
+			var stream = await content.ReadAsStreamAsync();
+			return stream;
+		}
+
+		/// <summary>
+		/// </summary>
+		/// <param name="searchText">Specifies the search query. This is the only required field.</param>
+		/// <param name="userId">Specifies the creator of the returned notes by the id of the user. Does not work together with the display_name parameter</param>
+		/// <param name="userName">Specifies the creator of the returned notes by the display name. Does not work together with the user parameter</param>
+		/// <param name="limit">Must be between 1 and 10,000. 100 is default if null.</param>
+		/// <param name="maxClosedDays">0 means only open notes. -1 mean all (open and closed) notes. 7 is default if null.</param>
+		/// <param name="fromDate">Specifies the beginning of a date range to search in for a note</param>
+		/// <param name="toDate">Specifies the end of a date range to search in for a note</param>
+		public async Task<Note[]> QueryNotes(string searchText, long? userId, string userName,
+			int? limit, int? maxClosedDays, DateTime? fromDate, DateTime? toDate)
+		{
+			if (userId.HasValue && userName != null)
+				throw new Exception("Query can only specify userID OR userName, not both.");
+			if (fromDate > toDate)
+				throw new Exception("Query [fromDate] must be before [toDate] if both are provided.");
+			if (searchText == null)
+				throw new Exception("Query searchText is required.");
+
+			var query = HttpUtility.ParseQueryString(string.Empty);
+			query["q"] = searchText;
+			if (limit != null) query["limit"] = limit.ToString();
+			if (maxClosedDays != null) query["closed"] = maxClosedDays.ToString();
+			if (userName != null) query["display_name"] = userName;
+			if (userId != null) query["user"] = userId.ToString();
+			if (fromDate != null) query["from"] = FormatNoteDate(fromDate.Value);
+			if (toDate != null) query["to"] = FormatNoteDate(toDate.Value);
+
+			string format = ".xml";
+			var address = BaseAddress + $"0.6/notes/search{format}?{query}";
+			var osm = await Get<Osm>(address);
+			return osm.Notes;
+		}
+
+		private static string FormatNoteDate(DateTime date)
+		{
+			// DateTimes in notes are 'different'.
+			return date.ToString("yyyy-MM-dd HH:mm:ss") + " UTC";
+		}
+
+		public async Task<Note> CreateNote(float latitude, float longitude, string text)
+		{
+			var query = HttpUtility.ParseQueryString(string.Empty);
+			query["text"] = text;
+			query["lat"] = ToString(latitude);
+			query["lon"] = ToString(longitude);
+
+			var address = BaseAddress + $"0.6/notes?{query}";
+			// Can be with Auth or without.
+			var osm = await Post<Osm>(address);
+			return osm.Notes[0];
+		}
+
+		public async Task<Note> CommentNote(long noteId, string text)
+		{
+			var query = HttpUtility.ParseQueryString(string.Empty);
+			query["text"] = text;
+			var address = BaseAddress + $"0.6/notes/{noteId}/comment?{query}";
+			// Can be with Auth or without.
+			var osm = await Post<Osm>(address);
+			return osm.Notes[0];
+		}
+		#endregion
+
 		protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpClient> auth = null) where T : class
 		{
 			var content = await Get(address, auth);
@@ -422,6 +513,26 @@ namespace OsmSharp.IO.API
 			return elements;
 		}
 
+		protected string ToString(Bounds bounds)
+		{
+			StringBuilder x = new StringBuilder();
+			x.Append(bounds.MinLongitude.Value.ToString(OsmMaxPrecision));
+			x.Append(',');
+			x.Append(bounds.MinLatitude.Value.ToString(OsmMaxPrecision));
+			x.Append(',');
+			x.Append(bounds.MaxLongitude.Value.ToString(OsmMaxPrecision));
+			x.Append(',');
+			x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
+
+			return x.ToString();
+		}
+
+		protected string ToString(float number)
+		{
+			return number.ToString(OsmMaxPrecision);
+		}
+
+		#region Http
 		protected async Task<T> Get<T>(string address, Action<HttpClient> auth = null) where T : class
 		{
 			var content = await Get(address, auth);
@@ -445,22 +556,88 @@ namespace OsmSharp.IO.API
 			return response.Content;
 		}
 
-		protected string ToString(Bounds bounds)
+		protected async Task<T> Post<T>(string address, HttpContent requestContent = null) where T : class
 		{
-			StringBuilder x = new StringBuilder();
-			x.Append(bounds.MinLongitude.Value.ToString(OsmMaxPrecision));
-			x.Append(',');
-			x.Append(bounds.MinLatitude.Value.ToString(OsmMaxPrecision));
-			x.Append(',');
-			x.Append(bounds.MaxLongitude.Value.ToString(OsmMaxPrecision));
-			x.Append(',');
-			x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
+			var responseContent = await Post(address, requestContent);
+			var stream = await responseContent.ReadAsStreamAsync();
+			var serializer = new XmlSerializer(typeof(T));
+			var content = serializer.Deserialize(stream) as T;
+			return content;
+		}
 
-			return x.ToString();
+		protected async Task<HttpContent> Post(string address, HttpContent requestContent = null)
+		{
+			requestContent = requestContent ?? new StringContent("");
+
+			var client = new HttpClient();
+			AddAuthentication(client, address, "Post");
+			var response = await client.PostAsync(address, requestContent);
+			if (!response.IsSuccessStatusCode)
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
+			}
+			return response.Content;
+		}
+
+		protected async Task<T> Put<T>(string address, HttpContent requestContent = null) where T : class
+		{
+			var content = await Put(address, requestContent);
+			var stream = await content.ReadAsStreamAsync();
+			var serializer = new XmlSerializer(typeof(T));
+			var element = serializer.Deserialize(stream) as T;
+			return element;
+		}
+
+		protected async Task<HttpContent> Put(string address, HttpContent requestContent = null)
+		{
+			requestContent = requestContent ?? new StringContent("");
+
+			var client = new HttpClient();
+			AddAuthentication(client, address, "PUT");
+			var response = await client.PutAsync(address, requestContent);
+			if (!response.IsSuccessStatusCode)
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
+			}
+
+			return response.Content;
+		}
+
+		protected async Task<HttpContent> Delete(string address, HttpContent requestContent = null)
+		{
+			var client = new HttpClient();
+			AddAuthentication(client, address, "DELETE");
+			HttpResponseMessage response;
+
+			if (requestContent != null)
+			{
+				HttpRequestMessage request = new HttpRequestMessage
+				{
+					Content = requestContent,
+					Method = HttpMethod.Delete,
+					RequestUri = new Uri(address)
+				};
+				response = await client.SendAsync(request);
+			}
+			else
+			{
+				response = await client.DeleteAsync(address);
+			}
+
+			if (!response.IsSuccessStatusCode)
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
+			}
+
+			return response.Content;
 		}
 
 		// For GetTraceDetails() and GetTraceData(), which may be authenticated or not.
 		protected virtual void AddAuthentication(HttpClient client, string url, string method = "GET") { }
+		#endregion
 	}
 }
 

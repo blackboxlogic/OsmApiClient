@@ -8,8 +8,8 @@ using OsmSharp.API;
 using OsmSharp.Changesets;
 using OsmSharp.Tags;
 using OsmSharp.Complete;
-using System.Xml.Serialization;
 using OsmSharp.IO.Xml;
+using System.Web;
 
 namespace OsmSharp.IO.API
 {
@@ -244,6 +244,26 @@ namespace OsmSharp.IO.API
 		}
 		#endregion
 
+		#region Notes
+		public async Task<Note> CloseNote(long noteId, string text)
+		{
+			var query = HttpUtility.ParseQueryString(string.Empty);
+			query["text"] = text;
+			var address = BaseAddress + $"0.6/notes/{noteId}/close?{query}";
+			var osm = await Post<Osm>(address);
+			return osm.Notes[0];
+		}
+
+		public async Task<Note> ReOpenNote(long noteId, string text)
+		{
+			var query = HttpUtility.ParseQueryString(string.Empty);
+			query["text"] = text;
+			var address = BaseAddress + $"0.6/notes/{noteId}/reopen?{query}";
+			var osm = await Post<Osm>(address);
+			return osm.Notes[0];
+		}
+		#endregion
+
 		protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
 		{
 			osmGeo.ChangeSetId = changesetId;
@@ -261,85 +281,6 @@ namespace OsmSharp.IO.API
 					break;
 			}
 			return osm;
-		}
-
-		protected async Task<T> Post<T>(string address, HttpContent requestContent = null) where T : class
-		{
-			var responseContent = await Post(address, requestContent);
-			var stream = await responseContent.ReadAsStreamAsync();
-			var serializer = new XmlSerializer(typeof(T));
-			var content = serializer.Deserialize(stream) as T;
-			return content;
-		}
-
-		protected async Task<HttpContent> Post(string address, HttpContent requestContent = null)
-		{
-			requestContent = requestContent ?? new StringContent("");
-
-			var client = new HttpClient();
-			AddAuthentication(client, address, "Post");
-			var response = await client.PostAsync(address, requestContent);
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-			}
-			return response.Content;
-		}
-
-		protected async Task<T> Put<T>(string address, HttpContent requestContent = null) where T : class
-		{
-			var content = await Put(address, requestContent);
-			var stream = await content.ReadAsStreamAsync();
-			var serializer = new XmlSerializer(typeof(T));
-			var element = serializer.Deserialize(stream) as T;
-			return element;
-		}
-
-		protected async Task<HttpContent> Put(string address, HttpContent requestContent = null)
-		{
-			requestContent = requestContent ?? new StringContent("");
-
-			var client = new HttpClient();
-			AddAuthentication(client, address, "PUT");
-			var response = await client.PutAsync(address, requestContent);
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-			}
-
-			return response.Content;
-		}
-
-		protected async Task<HttpContent> Delete(string address, HttpContent requestContent = null)
-		{
-			var client = new HttpClient();
-			AddAuthentication(client, address, "DELETE");
-			HttpResponseMessage response;
-
-			if (requestContent != null)
-			{
-				HttpRequestMessage request = new HttpRequestMessage
-				{
-					Content = requestContent,
-					Method = HttpMethod.Delete,
-					RequestUri = new Uri(address)
-				};
-				response = await client.SendAsync(request);
-			}
-			else
-			{
-				response = await client.DeleteAsync(address);
-			}
-
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-			}
-
-			return response.Content;
 		}
 	}
 }
