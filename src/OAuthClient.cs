@@ -42,7 +42,6 @@ namespace OsmSharp.IO.API
 			};
 			var auth = request.GetAuthorizationHeader().Replace("OAuth ", "");
 			client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("OAuth", auth);
-				throw new Exception("Use Basic Auth. OAuth isn't supported in NETStandard1.3");
 		}
 	}
 }

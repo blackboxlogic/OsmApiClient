@@ -13,7 +13,8 @@ using System.Web;
 
 namespace OsmSharp.IO.API
 {
-	public abstract class AuthClient : Client
+	public abstract class 
+        AuthClient : Client
 	{
 		public AuthClient(string baseAddress) : base(baseAddress)
 		{ }

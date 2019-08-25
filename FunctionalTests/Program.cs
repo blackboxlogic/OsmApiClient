@@ -80,7 +80,11 @@ namespace OsmSharp.IO.API.FunctionalTests
 				if (!Config["osmApiUrl"].Contains("dev")) throw new Exception("These tests modify data, and it looks like your running them in PROD, please don't");
 
 				Console.Write("Testing OAuth client");
-				var oAuth = new OAuthClient(Config["osmApiUrl"], null, null, null, null);
+				var oAuth = new OAuthClient(Config["osmApiUrl"], 
+                    Config["oAuth:consumerKey"], 
+                    Config["oAuth:consumerSecret"], 
+                    Config["oAuth:token"],
+                    Config["oAuth:tokenSecret"]);
 				TestAuthClient(oAuth).Wait();
 				Console.WriteLine("All tests passed for the OAuth client.");
 			}
@@ -226,34 +230,40 @@ namespace OsmSharp.IO.API.FunctionalTests
 
 			var preferences = await client.GetUserPreferences();
 			NotNull(preferences);
-			await client.SetUserPreference("testKey", "testValue");
-			var value = await client.GetUserPreference("testKey");
-			True(value == "testValue");
-			preferences = await client.GetUserPreferences();
-			NotNull(preferences);
-			True(preferences.Any(p => p.Key == "testKey" && p.Value == "testValue"));
-			await client.DeleteUserPreference("testKey");
+            if (permissions.UserPermission.Contains(Permissions.Permission.allow_write_prefs))
+            {
+                await client.SetUserPreference("testKey", "testValue");
+                var value = await client.GetUserPreference("testKey");
+                True(value == "testValue");
+                preferences = await client.GetUserPreferences();
+                NotNull(preferences);
+                True(preferences.Any(p => p.Key == "testKey" && p.Value == "testValue"));
+                await client.DeleteUserPreference("testKey");
+            }
 
-			var note = await client.CreateNote(10.1f, 10.2f, "HelloWorld");
-			True(note?.Comments?.Comments?.FirstOrDefault()?.Text == "HelloWorld",
-				note?.Comments?.Comments?.FirstOrDefault()?.Action == Note.Comment.CommentAction.Opened,
-				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
-				note?.Status == Note.NoteStatus.Open);
-			note = await client.CommentNote(note.Id.Value, "second");
-			True(note?.Comments?.Comments?.LastOrDefault()?.Text == "second",
-				note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Commented,
-				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
-				note?.Status == Note.NoteStatus.Open);
-			note = await client.CloseNote(note.Id.Value, "closing");
-			True(note?.Comments?.Comments?.LastOrDefault()?.Text == "closing",
-				note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Closed,
-				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
-				note?.Status == Note.NoteStatus.Closed);
-			note = await client.ReOpenNote(note.Id.Value, "reopening");
-			True(note?.Comments?.Comments?.LastOrDefault()?.Text == "reopening",
-				note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.ReOpened,
-				note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
-				note?.Status == Note.NoteStatus.Open);
+            if (permissions.UserPermission.Contains(Permissions.Permission.allow_write_notes))
+            {
+                var note = await client.CreateNote(10.1f, 10.2f, "HelloWorld");
+                True(note?.Comments?.Comments?.FirstOrDefault()?.Text == "HelloWorld",
+                    note?.Comments?.Comments?.FirstOrDefault()?.Action == Note.Comment.CommentAction.Opened,
+                    note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+                    note?.Status == Note.NoteStatus.Open);
+                note = await client.CommentNote(note.Id.Value, "second");
+                True(note?.Comments?.Comments?.LastOrDefault()?.Text == "second",
+                    note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Commented,
+                    note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+                    note?.Status == Note.NoteStatus.Open);
+                note = await client.CloseNote(note.Id.Value, "closing");
+                True(note?.Comments?.Comments?.LastOrDefault()?.Text == "closing",
+                    note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Closed,
+                    note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+                    note?.Status == Note.NoteStatus.Closed);
+                note = await client.ReOpenNote(note.Id.Value, "reopening");
+                True(note?.Comments?.Comments?.LastOrDefault()?.Text == "reopening",
+                    note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.ReOpened,
+                    note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+                    note?.Status == Note.NoteStatus.Open);
+            }
 		}
 
 		private static void NotNull(params object[] os)
