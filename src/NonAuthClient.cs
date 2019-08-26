@@ -12,10 +12,11 @@ using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Web;
+using Microsoft.Extensions.Logging;
 
 namespace OsmSharp.IO.API
 {
-    public class Client
+    public class NonAuthClient
     {
         /// <summary>
         /// The OSM base address
@@ -29,9 +30,16 @@ namespace OsmSharp.IO.API
         // Prevent scientific notation in a url.
         protected string OsmMaxPrecision = "0.########";
 
-        public Client(string baseAddress)
+        private readonly HttpClient _httpClient;
+        private readonly ILogger _logger;
+
+        public NonAuthClient(string baseAddress, 
+            HttpClient httpClient,
+            ILogger logger)
         {
             BaseAddress = baseAddress;
+            _httpClient = httpClient;
+            _logger = logger;
         }
 
         /// <summary>
@@ -406,11 +414,12 @@ namespace OsmSharp.IO.API
 
             internal static async Task<TypedStream> Create(HttpContent content)
             {
-                var typed = new TypedStream();
-                typed.FileName = content.Headers.ContentDisposition?.FileName.Trim('"');
-                typed.ContentType = content.Headers.ContentType;
-                typed.Stream = await content.ReadAsStreamAsync();
-                return typed;
+                return new TypedStream
+                {
+                    FileName = content.Headers.ContentDisposition?.FileName.Trim('"'),
+                    ContentType = content.Headers.ContentType,
+                    Stream = await content.ReadAsStreamAsync()
+                };
             }
         }
         #endregion
@@ -505,7 +514,7 @@ namespace OsmSharp.IO.API
         }
         #endregion
 
-        protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpClient> auth = null) where T : class
+        protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
         {
             var content = await Get(address, auth);
             var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
@@ -533,7 +542,7 @@ namespace OsmSharp.IO.API
         }
 
         #region Http
-        protected async Task<T> Get<T>(string address, Action<HttpClient> auth = null) where T : class
+        protected async Task<T> Get<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
         {
             var content = await Get(address, auth);
             var stream = await content.ReadAsStreamAsync();
@@ -542,114 +551,63 @@ namespace OsmSharp.IO.API
             return element;
         }
 
-        protected async Task<HttpContent> Get(string address, Action<HttpClient> auth = null)
+        protected async Task<HttpContent> Get(string address, Action<HttpRequestMessage> auth = null)
         {
-            using (var client = new HttpClient())
+            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
             {
-                auth?.Invoke(client);
-                var response = await client.GetAsync(address);
+                auth?.Invoke(request);
+                var response = await _httpClient.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
                 }
-
                 return response.Content;
             }
         }
 
         protected async Task<T> Post<T>(string address, HttpContent requestContent = null) where T : class
         {
-            var responseContent = await Post(address, requestContent);
+            var responseContent = await SendAuthRequest(HttpMethod.Post, address, requestContent);
             var stream = await responseContent.ReadAsStreamAsync();
             var serializer = new XmlSerializer(typeof(T));
             var content = serializer.Deserialize(stream) as T;
             return content;
         }
 
-        protected async Task<HttpContent> Post(string address, HttpContent requestContent = null)
-        {
-            requestContent = requestContent ?? new StringContent("");
-
-            using (var client = new HttpClient())
-            {
-                AddAuthentication(client, address, "Post");
-                var response = await client.PostAsync(address, requestContent);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-                }
-                return response.Content;
-            }
-        }
-
         protected async Task<T> Put<T>(string address, HttpContent requestContent = null) where T : class
         {
-            var content = await Put(address, requestContent);
+            var content = await SendAuthRequest(HttpMethod.Put, address, requestContent);
             var stream = await content.ReadAsStreamAsync();
             var serializer = new XmlSerializer(typeof(T));
             var element = serializer.Deserialize(stream) as T;
             return element;
         }
 
-        protected async Task<HttpContent> Put(string address, HttpContent requestContent = null)
-        {
-            requestContent = requestContent ?? new StringContent("");
-
-            using (var client = new HttpClient())
-            {
-                AddAuthentication(client, address, "PUT");
-                var response = await client.PutAsync(address, requestContent);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-                }
-
-                return response.Content;
-            }
-        }
-
-        protected async Task<HttpContent> Delete(string address, HttpContent requestContent = null)
-        {
-            using (var client = new HttpClient())
-            {
-                AddAuthentication(client, address, "DELETE");
-                HttpResponseMessage response;
-
-                if (requestContent != null)
-                {
-                    HttpRequestMessage request = new HttpRequestMessage
-                    {
-                        Content = requestContent,
-                        Method = HttpMethod.Delete,
-                        RequestUri = new Uri(address)
-                    };
-                    response = await client.SendAsync(request);
-                }
-                else
-                {
-                    response = await client.DeleteAsync(address);
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-                }
-
-                return response.Content;
-            }
-        }
-
         /// <summary>
         /// For GetTraceDetails() and GetTraceData(), which may be authenticated or not.
         /// </summary>
-        /// <param name="client"></param>
+        /// <param name="message"></param>
         /// <param name="url"></param>
         /// <param name="method"></param>
-        protected virtual void AddAuthentication(HttpClient client, string url, string method = "GET") { }
+        protected virtual void AddAuthentication(HttpRequestMessage message, string url, string method = "GET") { }
+
+        protected async Task<HttpContent> SendAuthRequest(HttpMethod method, string address, HttpContent requestContent)
+        {
+            using (HttpRequestMessage request = new HttpRequestMessage(method, address))
+            {
+                AddAuthentication(request, address, method.ToString());
+                request.Content = requestContent;
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
+                }
+
+                return response.Content;
+            }
+        }
         #endregion
     }
 }

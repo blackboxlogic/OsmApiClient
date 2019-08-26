@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Net.Http;
 
 namespace OsmSharp.IO.API
@@ -16,8 +17,14 @@ namespace OsmSharp.IO.API
 		private readonly string Token;
 		private readonly string TokenSecret;
 
-		public OAuthClient(string baseAddress, string consumerKey, string consumerSecret, string token, string tokenSecret)
-			: base (baseAddress)
+		public OAuthClient(HttpClient httpClient,
+            ILogger logger,
+            string baseAddress,
+            string consumerKey, 
+            string consumerSecret, 
+            string token, 
+            string tokenSecret)
+			: base (baseAddress, httpClient, logger)
 		{
 			ConsumerKey = consumerKey;
 			ConsumerSecret = consumerSecret;
@@ -25,7 +32,7 @@ namespace OsmSharp.IO.API
 			TokenSecret = tokenSecret;
 		}
 
-		protected override void AddAuthentication(HttpClient client, string url, string method = "GET")
+		protected override void AddAuthentication(HttpRequestMessage message, string url, string method = "GET")
 		{
 
 			var request = new OAuth.OAuthRequest
@@ -41,7 +48,7 @@ namespace OsmSharp.IO.API
 				Method = method
 			};
 			var auth = request.GetAuthorizationHeader().Replace("OAuth ", "");
-			client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("OAuth", auth);
+            message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("OAuth", auth);
 		}
 	}
 }

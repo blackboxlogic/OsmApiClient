@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using OsmSharp.API;
@@ -57,7 +58,8 @@ namespace OsmSharp.IO.API.FunctionalTests
 				.Build();
 
 			Console.Write("Testing unauthenticated client");
-			var client = new Client(Config["osmApiUrl"]);
+            var factory = new ClientsFactory(null, new HttpClient(), Config["osmApiUrl"]);
+            var client = factory.CreateNonAuthClient();
 			TestClient(client).Wait();
 			Console.WriteLine("All tests passed for the unauthenticated client.");
 
@@ -66,7 +68,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 				if (!Config["osmApiUrl"].Contains("dev")) throw new Exception("These tests modify data, and it looks like your running them in PROD, please don't");
 
 				Console.Write("Testing BasicAuth client");
-				var basicAuth = new BasicAuthClient(Config["osmApiUrl"], Config["basicAuth:User"], Config["basicAuth:Password"]);
+				var basicAuth = factory.CreateBasicAuthClient(Config["basicAuth:User"], Config["basicAuth:Password"]);
 				TestAuthClient(basicAuth).Wait();
 				Console.WriteLine("All tests passed for the BasicAuth client.");
 			}
@@ -80,8 +82,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 				if (!Config["osmApiUrl"].Contains("dev")) throw new Exception("These tests modify data, and it looks like your running them in PROD, please don't");
 
 				Console.Write("Testing OAuth client");
-				var oAuth = new OAuthClient(Config["osmApiUrl"], 
-                    Config["oAuth:consumerKey"], 
+				var oAuth = factory.CreateOAuthClient(Config["oAuth:consumerKey"], 
                     Config["oAuth:consumerSecret"], 
                     Config["oAuth:token"],
                     Config["oAuth:tokenSecret"]);
@@ -96,7 +97,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 			Console.ReadKey(true);
 		}
 
-		private static async Task TestClient(Client client)
+		private static async Task TestClient(NonAuthClient client)
 		{
 			var capabilities = await client.GetCapabilities();
 			var apiVersion = await client.GetVersions();

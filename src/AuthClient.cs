@@ -10,13 +10,14 @@ using OsmSharp.Tags;
 using OsmSharp.Complete;
 using OsmSharp.IO.Xml;
 using System.Web;
+using Microsoft.Extensions.Logging;
 
 namespace OsmSharp.IO.API
 {
 	public abstract class 
-        AuthClient : Client
+        AuthClient : NonAuthClient
 	{
-		public AuthClient(string baseAddress) : base(baseAddress)
+		public AuthClient(string baseAddress, HttpClient httpClient, ILogger logger) : base(baseAddress, httpClient, logger)
 		{ }
 
 		#region Users
@@ -47,7 +48,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + "0.6/user/preferences";
 			var osm = new Osm() { Preferences = preferences };
 			var content = new StringContent(osm.SerializeToXml());
-			await Put(address, content);
+			await SendAuthRequest(HttpMethod.Put, address, content);
 		}
 
 		public async Task<string> GetUserPreference(string key)
@@ -62,13 +63,13 @@ namespace OsmSharp.IO.API
 		{
 			var address = BaseAddress + $"0.6/user/preferences/{key}";
 			var content = new StringContent(value);
-			await Put(address, content);
+			await SendAuthRequest(HttpMethod.Put, address, content);
 		}
 
 		public async Task DeleteUserPreference(string key)
 		{
 			var address = BaseAddress + $"0.6/user/preferences/{key}";
-			await Delete(address);
+			await SendAuthRequest(HttpMethod.Delete, address, null);
 		}
 		#endregion
 
@@ -80,7 +81,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + "0.6/changeset/create";
 			var changeSet = new Osm { Changesets = new[] { new Changeset { Tags = tags } } };
 			var content = new StringContent(changeSet.SerializeToXml());
-			var resultContent = await Put(address, content);
+			var resultContent = await SendAuthRequest(HttpMethod.Put, address, content);
 			var id = await resultContent.ReadAsStringAsync();
 			return long.Parse(id);
 		}
@@ -119,7 +120,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/create";
 			var osmRequest = GetOsmRequest(changesetId, osmGeo);
 			var content = new StringContent(osmRequest.SerializeToXml());
-			var response = await Put(address, content);
+			var response = await SendAuthRequest(HttpMethod.Put, address, content);
 			var id = await response.ReadAsStringAsync();
 			return long.Parse(id);
 		}
@@ -148,7 +149,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
 			var osmRequest = GetOsmRequest(changesetId, osmGeo);
 			var content = new StringContent(osmRequest.SerializeToXml());
-			var responseContent = await Put(address, content);
+			var responseContent = await SendAuthRequest(HttpMethod.Put, address, content);
 			var newVersionNumber = await responseContent.ReadAsStringAsync();
 			return int.Parse(newVersionNumber);
 		}
@@ -159,7 +160,7 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
 			var osmRequest = GetOsmRequest(changesetId, osmGeo);
 			var content = new StringContent(osmRequest.SerializeToXml());
-			var responseContent = await Delete(address, content);
+			var responseContent = await SendAuthRequest(HttpMethod.Delete, address, content);
 			var newVersionNumber = await responseContent.ReadAsStringAsync();
 			return int.Parse(newVersionNumber);
 		}
@@ -167,7 +168,7 @@ namespace OsmSharp.IO.API
 		public async Task CloseChangeset(long changesetId)
 		{
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/close";
-			await Put(address);
+			await SendAuthRequest(HttpMethod.Put, address, new StringContent(""));
 		}
 
 		/// <summary>
@@ -191,7 +192,7 @@ namespace OsmSharp.IO.API
 		public async Task ChangesetSubscribe(long changesetId)
 		{
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/subscribe";
-			await Post(address);
+			await SendAuthRequest(HttpMethod.Post, address, new StringContent(""));
 		}
 
 		/// <summary>
@@ -202,7 +203,7 @@ namespace OsmSharp.IO.API
 		public async Task ChangesetUnsubscribe(long changesetId)
 		{
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/unsubscribe";
-			await Post(address);
+			await SendAuthRequest(HttpMethod.Post, address, new StringContent(""));
 		}
 		#endregion
 
@@ -225,7 +226,7 @@ namespace OsmSharp.IO.API
 			var stream = new StreamContent(fileStream);
 			var cleanName = Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(gpx.Name));
 			form.Add(stream, "file", cleanName);
-			var content = await Post(address, form);
+			var content = await SendAuthRequest(HttpMethod.Post, address, form);
 			var id = await content.ReadAsStringAsync();
 			return int.Parse(id);
 		}
@@ -235,13 +236,13 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/gpx/{trace.Id}";
 			var osm = new Osm { GpxFiles = new[] { trace } };
 			var content = new StringContent(osm.SerializeToXml());
-			await Put(address, content);
+			await SendAuthRequest(HttpMethod.Put, address, content);
 		}
 
 		public async Task DeleteTrace(long traceId)
 		{
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
-			await Delete(address);
+			await SendAuthRequest(HttpMethod.Delete, address, null);
 		}
 		#endregion
 
