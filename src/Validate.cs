@@ -10,7 +10,7 @@ namespace OsmSharp.IO.API
 		{
 			if (bounds.MinLongitude + bounds.MinLatitude + bounds.MaxLongitude + bounds.MaxLatitude == null)
 			{
-				throw new Exception("No Bound may be null.");
+				throw new ArgumentException("No Bound may be null.");
 			}
 
 			if (bounds.MinLongitude < -180 || bounds.MinLongitude > 180
@@ -19,7 +19,7 @@ namespace OsmSharp.IO.API
 				|| bounds.MaxLatitude < -180 || bounds.MaxLatitude > 180
 				|| bounds.MinLatitude >= bounds.MaxLatitude)
 			{
-				throw new Exception("Those Bounds are not valid.");
+				throw new ArgumentException("Those Bounds are not valid.");
 			}
 		}
 
@@ -30,14 +30,15 @@ namespace OsmSharp.IO.API
 				if (!tags.TryGetValue(key, out string value)
 					|| string.IsNullOrEmpty(value))
 				{
-					throw new Exception($"TagCollection is missing the required key: {key}");
+					throw new ArgumentException($"TagCollection is missing the required key: {key}");
 				}
 			}
 		}
 
 		internal static void ElementHasAVersion(OsmGeo osmGeo)
 		{
-			if (osmGeo.Version == null) throw new Exception("Element must have a version");
+			if (osmGeo.Version == null)
+				throw new ArgumentException("Element must have a version");
 		}
 	}
 }

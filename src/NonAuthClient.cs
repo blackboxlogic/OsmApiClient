@@ -31,7 +31,7 @@ namespace OsmSharp.IO.API
         protected string OsmMaxPrecision = "0.########";
 
         private readonly HttpClient _httpClient;
-        private readonly ILogger _logger;
+        protected readonly ILogger _logger;
 
         public NonAuthClient(string baseAddress, 
             HttpClient httpClient,
@@ -331,11 +331,11 @@ namespace OsmSharp.IO.API
             long[] ids)
         {
             if (userId.HasValue && userName != null)
-                throw new Exception("Query can only specify userID OR userName, not both.");
+                throw new ArgumentException("Query can only specify userID OR userName, not both.");
             if (openOnly && closedOnly)
-                throw new Exception("Query can only specify openOnly OR closedOnly, not both.");
+                throw new ArgumentException("Query can only specify openOnly OR closedOnly, not both.");
             if (!minClosedDate.HasValue && maxOpenedDate.HasValue)
-                throw new Exception("Query must specify minClosedDate if maxOpenedDate is specified.");
+                throw new ArgumentException("Query must specify minClosedDate if maxOpenedDate is specified.");
 
             var query = HttpUtility.ParseQueryString(string.Empty);
             if (bounds != null) query["bbox"] = ToString(bounds);
@@ -463,11 +463,11 @@ namespace OsmSharp.IO.API
             int? limit, int? maxClosedDays, DateTime? fromDate, DateTime? toDate)
         {
             if (userId.HasValue && userName != null)
-                throw new Exception("Query can only specify userID OR userName, not both.");
+                throw new ArgumentException("Query can only specify userID OR userName, not both.");
             if (fromDate > toDate)
-                throw new Exception("Query [fromDate] must be before [toDate] if both are provided.");
+                throw new ArgumentException("Query [fromDate] must be before [toDate] if both are provided.");
             if (searchText == null)
-                throw new Exception("Query searchText is required.");
+                throw new ArgumentException("Query searchText is required.");
 
             var query = HttpUtility.ParseQueryString(string.Empty);
             query["q"] = searchText;
@@ -555,13 +555,10 @@ namespace OsmSharp.IO.API
         {
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
             {
+                _logger?.LogInformation($"GET: {address}");
                 auth?.Invoke(request);
                 var response = await _httpClient.SendAsync(request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-                }
+                await VerifyAndLogReponse(response);
                 return response.Content;
             }
         }
@@ -596,16 +593,30 @@ namespace OsmSharp.IO.API
         {
             using (HttpRequestMessage request = new HttpRequestMessage(method, address))
             {
+                _logger?.LogInformation($"{method}: {address}");
                 AddAuthentication(request, address, method.ToString());
                 request.Content = requestContent;
                 var response = await _httpClient.SendAsync(request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"Request failed: {response.StatusCode}-{response.ReasonPhrase} {errorContent}");
-                }
-
+                await VerifyAndLogReponse(response);
                 return response.Content;
+            }
+        }
+
+        protected async Task VerifyAndLogReponse(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var message = await response.Content.ReadAsStringAsync();
+                message = $"Request failed: {response.StatusCode}-{response.ReasonPhrase} {message}";
+                _logger?.LogError(message);
+                throw new OsmApiException(response.RequestMessage?.RequestUri, message, response.StatusCode);
+            }
+            else
+            {
+                var message = $"Request succeeded: {response.StatusCode}-{response.ReasonPhrase}";
+                _logger?.LogInformation(message);
+                var headers = string.Join(", ", response.Content.Headers.Select(h => $"{h.Key}: {h.Value}"));
+                _logger?.LogDebug(headers);
             }
         }
         #endregion

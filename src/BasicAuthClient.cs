@@ -26,6 +26,7 @@ namespace OsmSharp.IO.API
 
 		protected override void AddAuthentication(HttpRequestMessage request, string url, string method = "GET")
 		{
+			_logger?.LogInformation($"Adding BasicAuth for user {Username}.");
 			var auth = Convert.ToBase64String(Encoding.ASCII.GetBytes(Username + ":" + Password));
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", auth);
 		}

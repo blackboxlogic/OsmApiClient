@@ -34,7 +34,7 @@ namespace OsmSharp.IO.API
 
 		protected override void AddAuthentication(HttpRequestMessage message, string url, string method = "GET")
 		{
-
+			_logger?.LogInformation($"Adding OAuth v1.0 for ConsumerKey: {ConsumerKey}, Token: {Token}.");
 			var request = new OAuth.OAuthRequest
 			{
 				ConsumerKey = ConsumerKey,
