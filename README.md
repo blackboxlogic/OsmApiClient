@@ -1,13 +1,41 @@
 # OsmApiClient
-
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
+Please read the API's documentation and use it responsibly.
+This project is written in c# and you will need VisualStudio or VS Code to modify it. Pull requests are welcome.
 
-To work with this project, you will need VisualStudio or VS Code.
-Pull requests are welcome.
+### Features
+- Supports Logging using ILogger
+- Supports BasicAuth and OAuth
+- Supports every operation of the Osm Api v0.6
+- Has a [nuget package](https://www.nuget.org/packages/OsmApiClient)
+- Is thread safe
+- ~~~Works with [OsmSharp(https://github.com/OsmSharp/core)]~~~ (soon)
 
-------------------------
-# Supported Opperations
+# Example Usage
+'''c#
+var clientFactory = new ClientsFactory(null, new HttpClient(), "https://master.apis.dev.openstreetmap.org/api/");
+'''
+
+### Get a Node
+'''c#
+var client = clientFactory.CreateNonAuthClient();
+var node = await client.GetNode(100);
+'''
+
+### Delete a Node (map changes require BasicAuth or OAuth)
+'''c#
+var authClient = clientFactory.CreateBasicAuthClient("username", "password");
+var changeSetTags = new TagsCollection() { new Tag("comment", "Deleting a node.") };
+var changeSetId = await client.CreateChangeset(changeSetTags);
+node.Version = await client.DeleteElement(changeSetId, node);
+await client.CloseChangeset(changeSetId);
+'''
+
+See the tests for examples of each operation.
+
+# Supported Operations
 \* With or without Authentication
+
 \*\* Requies Authentication
 ### General Api Stuff
 - Get Api versions
