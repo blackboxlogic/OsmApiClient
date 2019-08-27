@@ -12,7 +12,9 @@ This project is written in c# and you will need VisualStudio or VS Code to modif
 
 # Example Usage
 ```c#
-var clientFactory = new ClientsFactory(null, new HttpClient(), "https://master.apis.dev.openstreetmap.org/api/");
+// Create a client factory
+var clientFactory = new ClientsFactory(null, new HttpClient(),
+	"https://master.apis.dev.openstreetmap.org/api/");
 ```
 
 ### Get a Node
@@ -86,6 +88,7 @@ See the tests for examples of each operation.
 - \*Comment on a note
 - \*\*Close a note
 - \*\*ReOpen a note
+
 \* With or without Authentication
 
 \*\* Requies Authentication
