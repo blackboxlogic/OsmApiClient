@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.1-beta.2</Version>
+    <Version>0.0.1</Version>
     <RepositoryUrl>https://github.com/blackboxlogic/OsmApiClient</RepositoryUrl>
-    <PackageReleaseNotes>Added support for user preferences and map notes. (This client can do everything the API offers).</PackageReleaseNotes>
+    <PackageReleaseNotes>Added logging and a factory pattern.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/blackboxlogic/OsmApiClient</PackageProjectUrl>
     <Description>This is a simple C# client to allow using OSM API easily.</Description>
     <PackageTags>osm;openstreetmap;client</PackageTags>

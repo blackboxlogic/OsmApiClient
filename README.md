@@ -1,7 +1,7 @@
 # OsmApiClient
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
 Please read the API's documentation and use it responsibly.
-This project is written in c# and you will need VisualStudio or VS Code to modify it. Pull requests are welcome.
+Pull requests are welcome. You will need VisualStudio or VS Code to modify this project.
 
 ### Features
 - Supports Logging using ILogger
