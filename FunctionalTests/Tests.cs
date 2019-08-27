@@ -228,7 +228,6 @@ namespace OsmSharp.IO.API.FunctionalTests
 
 			foreach (var o in os)
 			{
-				Console.Write('.');
 				if (o == null)
 				{
 					throw new Exception("Test FAILED");
@@ -238,7 +237,6 @@ namespace OsmSharp.IO.API.FunctionalTests
 
 		private static void True(params bool?[] tests)
 		{
-			Console.Write(new string('.', tests.Length));
 			if (!tests.All(t => t == true))
 			{
 				throw new Exception("Test FAILED");

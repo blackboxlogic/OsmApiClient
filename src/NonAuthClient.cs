@@ -615,7 +615,7 @@ namespace OsmSharp.IO.API
             {
                 var message = $"Request succeeded: {response.StatusCode}-{response.ReasonPhrase}";
                 _logger?.LogInformation(message);
-                var headers = string.Join(", ", response.Content.Headers.Select(h => $"{h.Key}: {h.Value}"));
+                var headers = string.Join(", ", response.Content.Headers.Select(h => $"{h.Key}: {string.Join(";", h.Value)}"));
                 _logger?.LogDebug(headers);
             }
         }
