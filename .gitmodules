@@ -1,4 +1,0 @@
-[submodule "core"]
-	path = core
-	url = https://github.com/blackboxlogic/core.git
-	branch = develop
