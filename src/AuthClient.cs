@@ -244,10 +244,20 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
 			await SendAuthRequest(HttpMethod.Delete, address, null);
 		}
-		#endregion
+        #endregion
 
-		#region Notes
-		public async Task<Note> CloseNote(long noteId, string text)
+        #region Notes
+        public async Task<Note> CommentNote(long noteId, string text)
+        {
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["text"] = text;
+            var address = BaseAddress + $"0.6/notes/{noteId}/comment?{query}";
+            // Can be with Auth or without.
+            var osm = await Post<Osm>(address);
+            return osm.Notes[0];
+        }
+
+        public async Task<Note> CloseNote(long noteId, string text)
 		{
 			var query = HttpUtility.ParseQueryString(string.Empty);
 			query["text"] = text;

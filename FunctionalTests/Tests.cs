@@ -108,11 +108,6 @@ namespace OsmSharp.IO.API.FunctionalTests
 				newNote?.Comments?.Comments?.FirstOrDefault()?.Action == Note.Comment.CommentAction.Opened,
 				newNote?.Comments?.Comments?.FirstOrDefault()?.UserId == null,
 				newNote?.Status == Note.NoteStatus.Open);
-			newNote = await client.CommentNote(newNote.Id.Value, "second");
-			True(newNote?.Comments?.Comments?.LastOrDefault()?.Text == "second",
-				newNote?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Commented,
-				newNote?.Comments?.Comments?.FirstOrDefault()?.UserId == null,
-				newNote?.Status == Note.NoteStatus.Open);
 		}
 
 		public static async Task TestAuthClient(AuthClient client)
@@ -214,6 +209,11 @@ namespace OsmSharp.IO.API.FunctionalTests
 				note = await client.ReOpenNote(note.Id.Value, "reopening");
 				True(note?.Comments?.Comments?.LastOrDefault()?.Text == "reopening",
 					note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.ReOpened,
+					note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
+					note?.Status == Note.NoteStatus.Open);
+				note = await client.CommentNote(note.Id.Value, "second");
+				True(note?.Comments?.Comments?.LastOrDefault()?.Text == "second",
+					note?.Comments?.Comments?.LastOrDefault()?.Action == Note.Comment.CommentAction.Commented,
 					note?.Comments?.Comments?.FirstOrDefault()?.UserId != null,
 					note?.Status == Note.NoteStatus.Open);
 			}
