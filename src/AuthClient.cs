@@ -75,7 +75,7 @@ namespace OsmSharp.IO.API
 
 		#region Changesets and Element Changes
 		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
-		public async Task<long> CreateChangeset(TagsCollection tags)
+		public async Task<long> CreateChangeset(TagsCollectionBase tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
 			var address = BaseAddress + "0.6/changeset/create";
@@ -87,7 +87,7 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
-		public async Task<Changeset> UpdateChangeset(long changesetId, TagsCollection tags)
+		public async Task<Changeset> UpdateChangeset(long changesetId, TagsCollectionBase tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
 			// TODO: Validate change meets OsmSharp.API.Capabilities?
