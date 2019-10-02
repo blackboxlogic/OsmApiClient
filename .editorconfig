@@ -1,0 +1,14 @@
+# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+root = true 
+
+[*.{md,csproj}] 
+indent_style = space 
+indent_size = 2 
+
+[*.cs] 
+indent_style = space 
+indent_size = 4 
+
+[*.{gpx,json,sln}] 
+indent_style = tab 
+indent_size = 4 
