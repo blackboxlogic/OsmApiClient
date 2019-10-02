@@ -85,7 +85,7 @@ See the tests for examples of each operation.
 - Get an RSS feed of notes in an area
 - Get a note
 - \*Create a new note
-- \*Comment on a note
+- \*\*Comment on a note
 - \*\*Close a note
 - \*\*ReOpen a note
 
