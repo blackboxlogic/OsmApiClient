@@ -33,9 +33,16 @@ namespace OsmSharp.IO.API
         private readonly HttpClient _httpClient;
         protected readonly ILogger _logger;
 
+        /// <summary>
+        /// Creates an instance of a NonAuthClient which can make be used to
+        /// make unauthenticated (generally read-only) calls to the OSM API.
+        /// </summary>
+        /// <param name="baseAddress">The base address for the OSM API (for example: 'https://www.openstreetmap.org/api/0.6/')</param>
+        /// <param name="httpClient">An HttpClient</param>
+        /// <param name="logger">Optional. Is used to log out details of requests.</param>
         public NonAuthClient(string baseAddress, 
             HttpClient httpClient,
-            ILogger logger)
+            ILogger logger = null)
         {
             BaseAddress = baseAddress;
             _httpClient = httpClient;
@@ -527,6 +534,11 @@ namespace OsmSharp.IO.API
         #endregion
 
         #region Notes
+        /// <summary>
+        /// Gets a Note
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fnotes.2F.23id">
+        /// GET /api/0.6/notes/#id</see>.
+        /// </summary>
         public async Task<Note> GetNote(long id)
         {
             var address = BaseAddress + $"0.6/notes/{id}";
@@ -534,6 +546,11 @@ namespace OsmSharp.IO.API
             return osm.Notes?.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Gets many a Notes in a box and with the spcified time since closed
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Retrieving_notes_data_by_bounding_box:_GET_.2Fapi.2F0.6.2Fnotes">
+        /// GET /api/0.6/notes?[parameters]</see>.
+        /// </summary>
         /// <param name="limit">Must be between 1 and 10,000.</param>
         /// <param name="maxClosedDays">0 means only open notes. -1 mean all (open and closed) notes.</param>
         public async Task<Note[]> GetNotes(Bounds bounds, int limit = 100, int maxClosedDays = 7)
@@ -544,6 +561,11 @@ namespace OsmSharp.IO.API
             return osm.Notes;
         }
 
+        /// <summary>
+        /// Gets an RSS feed of Notes in an area
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#RSS_Feed:_GET_.2Fapi.2F0.6.2Fnotes.2Ffeed">
+        /// GET /api/0.6/notes/feed</see>.
+        /// </summary>
         public async Task<Stream> GetNotesRssFeed(Bounds bounds)
         {
             var address = BaseAddress + $"0.6/notes/feed?bbox={ToString(bounds)}";
@@ -553,6 +575,9 @@ namespace OsmSharp.IO.API
         }
 
         /// <summary>
+        /// Search for Notes
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Search_for_notes:_GET_.2Fapi.2F0.6.2Fnotes.2Fsearch">
+        /// GET /api/0.6/notes/search</see>.
         /// </summary>
         /// <param name="searchText">Specifies the search query. This is the only required field.</param>
         /// <param name="userId">Specifies the creator of the returned notes by the id of the user. Does not work together with the display_name parameter</param>
@@ -592,6 +617,11 @@ namespace OsmSharp.IO.API
             return date.ToString("yyyy-MM-dd HH:mm:ss") + " UTC";
         }
 
+        /// <summary>
+        /// Creates a new Note
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create_a_new_note:_Create:_POST_.2Fapi.2F0.6.2Fnotes">
+        /// POST /api/0.6/notes</see>.
+        /// </summary>
         public async Task<Note> CreateNote(float latitude, float longitude, string text)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
