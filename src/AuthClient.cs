@@ -301,9 +301,14 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/unsubscribe";
 			await SendAuthRequest(HttpMethod.Post, address, new StringContent(""));
 		}
-		#endregion
+        #endregion
 
-		#region Traces
+        #region Traces
+        /// <summary>
+        /// Gets the current User's GPX Trace Files
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#List:_GET_.2Fapi.2F0.6.2Fuser.2Fgpx_files">
+        /// GET /api/0.6/user/gpx_files</see>
+        /// </summary>
 		public async Task<GpxFile[]> GetTraces()
 		{
 			var address = BaseAddress + "0.6/user/gpx_files";
@@ -311,6 +316,12 @@ namespace OsmSharp.IO.API
 			return osm.GpxFiles ?? new GpxFile[0];
 		}
 
+        /// <summary>
+        /// Creates a new GPX Trace File
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_POST_.2Fapi.2F0.6.2Fgpx.2Fcreate">
+        /// POST /api/0.6/gpx/create</see>
+        /// </summary>
+        /// <returns>The GPX Trace File's ID</returns>
 		public async Task<int> CreateTrace(GpxFile gpx, Stream fileStream)
 		{
 			var address = BaseAddress + "0.6/gpx/create";
@@ -327,7 +338,12 @@ namespace OsmSharp.IO.API
 			return int.Parse(id);
 		}
 
-		public async Task UpdateTrace(GpxFile trace)
+        /// <summary>
+        /// Updates a GPX Trace File (overwrites with a new one)
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Update:_PUT_.2Fapi.2F0.6.2Fgpx.2F.23id">
+        /// PUT /api/0.6/gpx/#id</see>
+        /// </summary>
+        public async Task UpdateTrace(GpxFile trace)
 		{
 			var address = BaseAddress + $"0.6/gpx/{trace.Id}";
 			var osm = new Osm { GpxFiles = new[] { trace } };
@@ -335,6 +351,11 @@ namespace OsmSharp.IO.API
 			await SendAuthRequest(HttpMethod.Put, address, content);
 		}
 
+        /// <summary>
+        /// Deletes a GPX Trace File
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Delete:_DELETE_.2Fapi.2F0.6.2Fgpx.2F.23id">
+        /// DELETE /api/0.6/gpx/#id</see>
+        /// </summary>
 		public async Task DeleteTrace(long traceId)
 		{
 			var address = BaseAddress + $"0.6/gpx/{traceId}";
@@ -343,6 +364,12 @@ namespace OsmSharp.IO.API
         #endregion
 
         #region Notes
+        /// <summary>
+        /// Creates a new Comment on a Note
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create_a_new_comment:_Create:_POST_.2Fapi.2F0.6.2Fnotes.2F.23id.2Fcomment">
+        /// POST /api/0.6/notes/#id/comment</see>
+        /// </summary>
+        /// <returns>The updated Note, including the new Comment</returns>
         public async Task<Note> CommentNote(long noteId, string text)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
@@ -353,6 +380,12 @@ namespace OsmSharp.IO.API
             return osm.Notes[0];
         }
 
+        /// <summary>
+        /// Closes a Note and creates a new Comment
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Close:_POST_.2Fapi.2F0.6.2Fnotes.2F.23id.2Fclose">
+        /// POST /api/0.6/notes/#id/close</see>
+        /// </summary>
+        /// <returns>The updated Note, including the new Comment</returns>
         public async Task<Note> CloseNote(long noteId, string text)
 		{
 			var query = HttpUtility.ParseQueryString(string.Empty);
@@ -362,7 +395,13 @@ namespace OsmSharp.IO.API
 			return osm.Notes[0];
 		}
 
-		public async Task<Note> ReOpenNote(long noteId, string text)
+        /// <summary>
+        /// ReOpens a Note and creates a new Comment
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Reopen:_POST_.2Fapi.2F0.6.2Fnotes.2F.23id.2Freopen">
+        /// POST /api/0.6/notes/#id/reopen</see>
+        /// </summary>
+        /// <returns>The updated Note, including the new Comment</returns>
+        public async Task<Note> ReOpenNote(long noteId, string text)
 		{
 			var query = HttpUtility.ParseQueryString(string.Empty);
 			query["text"] = text;
