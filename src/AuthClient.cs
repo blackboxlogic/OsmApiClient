@@ -118,11 +118,17 @@ namespace OsmSharp.IO.API
 			var address = BaseAddress + $"0.6/user/preferences/{Encode(key)}";
 			await SendAuthRequest(HttpMethod.Delete, address, null);
 		}
-		#endregion
+        #endregion
 
-		#region Changesets and Element Changes
-		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
-		public async Task<long> CreateChangeset(TagsCollectionBase tags)
+        #region Changesets and Element Changes
+        /// <summary>
+        /// Creates a new Changeset with metadata (but does not add any changes)
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_PUT_.2Fapi.2F0.6.2Fchangeset.2Fcreate">
+        /// PUT /api/0.6/changeset/create</see>
+        /// </summary>
+        /// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
+        /// <returns>The ID of the new Changeset</returns>
+        public async Task<long> CreateChangeset(TagsCollectionBase tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
 			var address = BaseAddress + "0.6/changeset/create";
@@ -133,7 +139,13 @@ namespace OsmSharp.IO.API
 			return long.Parse(id);
 		}
 
-		/// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
+        /// <summary>
+        /// Updates a specific Changeset's metadata
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Update:_PUT_.2Fapi.2F0.6.2Fchangeset.2F.23id">
+        /// PUT /api/0.6/changeset/#id</see>
+        /// </summary>
+        /// <param name="tags">Must at least contain 'comment' and 'created_by'.</param>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
 		public async Task<Changeset> UpdateChangeset(long changesetId, TagsCollectionBase tags)
 		{
 			Validate.ContainsTags(tags, "comment", "created_by");
@@ -145,8 +157,14 @@ namespace OsmSharp.IO.API
 			return osm.Changesets[0];
 		}
 
-		/// <remarks>This automatically adds the ChangeSetId tag to each element.</remarks>
-		public async Task<DiffResult> UploadChangeset(long changesetId, OsmChange osmChange)
+        /// <summary>
+        /// Add map changes to a Changset
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Diff_upload:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fupload">
+        /// POST /api/0.6/changeset/#id/upload</see>
+        /// </summary>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
+        /// <remarks>This automatically adds the ChangeSetId tag to each element</remarks>
+        public async Task<DiffResult> UploadChangeset(long changesetId, OsmChange osmChange)
 		{
 			var elements = new OsmGeo[][] { osmChange.Create, osmChange.Modify, osmChange.Delete }
 				.Where(c => c != null).SelectMany(c => c);
@@ -162,7 +180,14 @@ namespace OsmSharp.IO.API
 			return await Post<DiffResult>(address, request);
 		}
 
-		public async Task<long> CreateElement(long changesetId, OsmGeo osmGeo)
+        /// <summary>
+        /// Adds a new Element's creation to a Changeset
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_PUT_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2Fcreate">
+        /// PUT /api/0.6/[node|way|relation]/create</see>
+        /// </summary>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
+        /// <returns>The ID of the new Element</returns>
+        public async Task<long> CreateElement(long changesetId, OsmGeo osmGeo)
 		{
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/create";
 			var osmRequest = GetOsmRequest(changesetId, osmGeo);
@@ -172,25 +197,36 @@ namespace OsmSharp.IO.API
 			return long.Parse(id);
 		}
 
-		public async Task UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
-		{
-			switch (osmGeo.Type)
-			{
-				case OsmGeoType.Node:
-					await UpdateElement(changesetId, osmGeo as OsmGeo);
-					break;
-				case OsmGeoType.Way:
-					await UpdateElement(changesetId, ((CompleteWay)osmGeo).ToSimple());
-					break;
-				case OsmGeoType.Relation:
-					await UpdateElement(changesetId, ((CompleteRelation)osmGeo).ToSimple());
-					break;
-				default:
-					throw new Exception($"Invalid OSM geometry type: {osmGeo.Type}");
-			}
-		}
+        /// <summary>
+        /// Updates an Element in a Changeset
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Update:_PUT_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
+        /// PUT /api/0.6/[node|way|relation]/#id</see>
+        /// </summary>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
+        /// <returns>The Element's new version number</returns>
+        public async Task<int> UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
+        {
+            switch (osmGeo.Type)
+            {
+                case OsmGeoType.Node:
+                    return await UpdateElement(changesetId, osmGeo as OsmGeo);
+                case OsmGeoType.Way:
+                    return await UpdateElement(changesetId, ((CompleteWay)osmGeo).ToSimple());
+                case OsmGeoType.Relation:
+                    return await UpdateElement(changesetId, ((CompleteRelation)osmGeo).ToSimple());
+                default:
+                    throw new Exception($"Invalid OSM geometry type: {osmGeo.Type}");
+            }
+        }
 
-		public async Task<int> UpdateElement(long changesetId, OsmGeo osmGeo)
+        /// <summary>
+        /// Updates an Element in a Changeset
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Update:_PUT_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
+        /// PUT /api/0.6/[node|way|relation]/#id</see>
+        /// </summary>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
+        /// <returns>The Element's new version number</returns>
+        public async Task<int> UpdateElement(long changesetId, OsmGeo osmGeo)
 		{
 			Validate.ElementHasAVersion(osmGeo);
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
@@ -201,7 +237,14 @@ namespace OsmSharp.IO.API
 			return int.Parse(newVersionNumber);
 		}
 
-		public async Task<int> DeleteElement(long changesetId, OsmGeo osmGeo)
+        /// <summary>
+        /// Deletes an Element in a Changeset
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Delete:_DELETE_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
+        /// DELETE /api/0.6/[node|way|relation]/#id</see>
+        /// </summary>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
+        /// <returns>The Element's new version number</returns>
+        public async Task<int> DeleteElement(long changesetId, OsmGeo osmGeo)
 		{
 			Validate.ElementHasAVersion(osmGeo);
 			var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
@@ -212,14 +255,20 @@ namespace OsmSharp.IO.API
 			return int.Parse(newVersionNumber);
 		}
 
-		public async Task CloseChangeset(long changesetId)
+        /// <summary>
+        /// Closes a Changeset
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Close:_PUT_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fclose">
+        /// PUT /api/0.6/changeset/#id/close</see>
+        /// </summary>
+        /// <param name="changesetId">The ID of an OPEN Changeset.</param>
+        public async Task CloseChangeset(long changesetId)
 		{
 			var address = BaseAddress + $"0.6/changeset/{changesetId}/close";
 			await SendAuthRequest(HttpMethod.Put, address, new StringContent(""));
 		}
 
 		/// <summary>
-		/// Comment
+		/// Comments on to a Changeset
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Comment:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fcomment">
 		/// POST /api/0.6/changeset/#id/comment </see>
 		/// </summary>
@@ -232,7 +281,7 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <summary>
-		/// Subscribe
+		/// Subscribes the current User to a Changeset
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Subscribe:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Fsubscribe">
 		/// POST /api/0.6/changeset/#id/subscribe </see>
 		/// </summary>
@@ -243,7 +292,7 @@ namespace OsmSharp.IO.API
 		}
 
 		/// <summary>
-		/// Unsubscribe
+		/// Unsubscribe the current User from a Changeset
 		/// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Subscribe:_POST_.2Fapi.2F0.6.2Fchangeset.2F.23id.2Funsubscribe">
 		/// POST /api/0.6/changeset/#id/unsubscribe </see>
 		/// </summary>
