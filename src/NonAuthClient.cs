@@ -34,12 +34,12 @@ namespace OsmSharp.IO.API
         protected readonly ILogger _logger;
 
         /// <summary>
-        /// Creates an instance of a NonAuthClient which can make be used to
-        /// make unauthenticated (generally read-only) calls to the OSM API.
+        /// Creates an instance of a NonAuthClient which can make
+        /// unauthenticated (generally read-only) calls to the OSM API.
         /// </summary>
         /// <param name="baseAddress">The base address for the OSM API (for example: 'https://www.openstreetmap.org/api/0.6/')</param>
         /// <param name="httpClient">An HttpClient</param>
-        /// <param name="logger">Optional. Is used to log out details of requests.</param>
+        /// <param name="logger">For logging out details of requests. Optional.</param>
         public NonAuthClient(string baseAddress, 
             HttpClient httpClient,
             ILogger logger = null)
@@ -664,6 +664,8 @@ namespace OsmSharp.IO.API
         }
 
         #region Http
+        protected static readonly Func<string, string> Encode = HttpUtility.UrlEncode;
+
         protected async Task<T> Get<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
         {
             var content = await Get(address, auth);
