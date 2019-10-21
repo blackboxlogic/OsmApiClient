@@ -222,6 +222,7 @@ namespace OsmSharp.IO.API
         /// <inheritdoc />
         public async Task<int> CreateTrace(GpxFile gpx, Stream fileStream)
         {
+            Validate.TraceHasNameDescriptionAndVisibility(gpx);
             var address = BaseAddress + "0.6/gpx/create";
             var form = new MultipartFormDataContent();
             form.Add(new StringContent(gpx.Description), "\"description\"");

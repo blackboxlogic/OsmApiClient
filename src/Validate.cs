@@ -40,5 +40,21 @@ namespace OsmSharp.IO.API
 			if (osmGeo.Version == null)
 				throw new ArgumentException("Element must have a version");
 		}
+
+        internal static void TraceHasNameDescriptionAndVisibility(GpxFile gpxFile)
+        {
+            if (string.IsNullOrEmpty(gpxFile.Name))
+            {
+                throw new ArgumentException("Gpx file must have a name");
+            }
+            if (string.IsNullOrEmpty(gpxFile.Description))
+            {
+                throw new ArgumentException("Gpx file must have a description");
+            }
+            if (gpxFile.Visibility == null)
+            {
+                throw new ArgumentException("Gpx file must have a visibility");
+            }
+        }
 	}
 }
