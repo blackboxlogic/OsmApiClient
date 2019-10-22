@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OsmSharp.IO.API
 {
-    public class NonAuthClient
+    public partial class NonAuthClient : INonAuthClient
     {
         /// <summary>
         /// The OSM base address
@@ -33,7 +33,7 @@ namespace OsmSharp.IO.API
         private readonly HttpClient _httpClient;
         protected readonly ILogger _logger;
 
-        public NonAuthClient(string baseAddress, 
+        public NonAuthClient(string baseAddress,
             HttpClient httpClient,
             ILogger logger)
         {
@@ -404,23 +404,6 @@ namespace OsmSharp.IO.API
             var address = BaseAddress + $"0.6/gpx/{id}/data";
             var content = await Get(address, c => AddAuthentication(c, address));
             return await TypedStream.Create(content);
-        }
-
-        public class TypedStream
-        {
-            public Stream Stream;
-            public string FileName;
-            public System.Net.Http.Headers.MediaTypeHeaderValue ContentType;
-
-            internal static async Task<TypedStream> Create(HttpContent content)
-            {
-                return new TypedStream
-                {
-                    FileName = content.Headers.ContentDisposition?.FileName.Trim('"'),
-                    ContentType = content.Headers.ContentType,
-                    Stream = await content.ReadAsStreamAsync()
-                };
-            }
         }
         #endregion
 
