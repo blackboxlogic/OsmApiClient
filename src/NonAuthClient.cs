@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OsmSharp.IO.API
 {
-    public class NonAuthClient
+    public class NonAuthClient : INonAuthClient
     {
         /// <summary>
         /// The OSM base address
@@ -40,7 +40,7 @@ namespace OsmSharp.IO.API
         /// <param name="baseAddress">The base address for the OSM API (for example: 'https://www.openstreetmap.org/api/0.6/')</param>
         /// <param name="httpClient">An HttpClient</param>
         /// <param name="logger">For logging out details of requests. Optional.</param>
-        public NonAuthClient(string baseAddress, 
+        public NonAuthClient(string baseAddress,
             HttpClient httpClient,
             ILogger logger = null)
         {
@@ -297,7 +297,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <summary>
-        /// gets many Relations
+        /// Gets many Relations
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
         /// GET /api/0.6/relations?#parameters</see>.
         /// </summary>
@@ -333,7 +333,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <summary>
-        /// gets many Relations at specific versions
+        /// Gets many Relations at specific versions
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
         /// GET /api/0.6/relations?#parameters</see>.
         /// </summary>
@@ -513,23 +513,6 @@ namespace OsmSharp.IO.API
             var address = BaseAddress + $"0.6/gpx/{id}/data";
             var content = await Get(address, c => AddAuthentication(c, address));
             return await TypedStream.Create(content);
-        }
-
-        public class TypedStream
-        {
-            public Stream Stream;
-            public string FileName;
-            public System.Net.Http.Headers.MediaTypeHeaderValue ContentType;
-
-            internal static async Task<TypedStream> Create(HttpContent content)
-            {
-                return new TypedStream
-                {
-                    FileName = content.Headers.ContentDisposition?.FileName.Trim('"'),
-                    ContentType = content.Headers.ContentType,
-                    Stream = await content.ReadAsStreamAsync()
-                };
-            }
         }
         #endregion
 
