@@ -21,19 +21,19 @@ namespace OsmSharp.IO.API
         }
 
         /// <inheritdoc/>
-        public NonAuthClient CreateNonAuthClient()
+        public INonAuthClient CreateNonAuthClient()
         {
             return new NonAuthClient(_baseAddress, _httpClient, _logger);
         }
 
         /// <inheritdoc/>
-        public AuthClient CreateBasicAuthClient(string username, string password)
+        public IAuthClient CreateBasicAuthClient(string username, string password)
         {
             return new BasicAuthClient(_httpClient, _logger, _baseAddress, username, password);
         }
 
         /// <inheritdoc/>
-        public AuthClient CreateOAuthClient(string consumerKey, string consumerSecret, string token, string tokenSecret)
+        public IAuthClient CreateOAuthClient(string consumerKey, string consumerSecret, string token, string tokenSecret)
         {
             return new OAuthClient(_httpClient, _logger, _baseAddress, consumerKey, consumerSecret, token, tokenSecret);
         }
