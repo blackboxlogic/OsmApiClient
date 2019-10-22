@@ -3,7 +3,7 @@
 	<trk>
 		<name>test.gpx</name>
 		<desc>A file for testing upload functionality.</desc>
-		<url>https://github.com/blackboxlogic/OsmApiClient</url>
+		<url>https://github.com/OsmSharp/osm-api-client/</url>
 		<trkseg>
 			<trkpt lat="51.6616100" lon="0.0534560">
 				<time>2019-06-26T14:27:58Z</time>
