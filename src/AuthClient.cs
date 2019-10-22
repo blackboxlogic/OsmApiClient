@@ -14,14 +14,20 @@ using Microsoft.Extensions.Logging;
 
 namespace OsmSharp.IO.API
 {
-    public abstract class
-        AuthClient : NonAuthClient, IAuthClient
+    public abstract class AuthClient : NonAuthClient, IAuthClient
     {
-        public AuthClient(string baseAddress, HttpClient httpClient, ILogger logger) : base(baseAddress, httpClient, logger)
+        /// <summary>
+        /// Creates an instance of an AuthClient which can make
+        /// authenticated (read and write) calls to the OSM API.
+        /// </summary>
+        /// <param name="baseAddress">The base address for the OSM API (for example: 'https://www.openstreetmap.org/api/0.6/')</param>
+        /// <param name="httpClient">An HttpClient</param>
+        /// <param name="logger">For logging out details of requests. Optional.</param>
+        public AuthClient(string baseAddress, HttpClient httpClient, ILogger logger = null)
+            : base(baseAddress, httpClient, logger)
         { }
 
         #region Users
-
         /// <inheritdoc />
         public async Task<Permissions> GetPermissions()
         {
@@ -33,7 +39,6 @@ namespace OsmSharp.IO.API
         /// <inheritdoc />
         public async Task<User> GetUserDetails()
         {
-
             var address = BaseAddress + "0.6/user/details";
             var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
             return osm.User;
@@ -59,7 +64,7 @@ namespace OsmSharp.IO.API
         /// <inheritdoc />
         public async Task<string> GetUserPreference(string key)
         {
-            var address = BaseAddress + $"0.6/user/preferences/{key}";
+            var address = BaseAddress + $"0.6/user/preferences/{Encode(key)}";
             var content = await Get(address, c => AddAuthentication(c, address));
             var value = await content.ReadAsStringAsync();
             return value;
@@ -68,7 +73,7 @@ namespace OsmSharp.IO.API
         /// <inheritdoc />
         public async Task SetUserPreference(string key, string value)
         {
-            var address = BaseAddress + $"0.6/user/preferences/{key}";
+            var address = BaseAddress + $"0.6/user/preferences/{Encode(key)}";
             var content = new StringContent(value);
             await SendAuthRequest(HttpMethod.Put, address, content);
         }
@@ -76,13 +81,12 @@ namespace OsmSharp.IO.API
         /// <inheritdoc />
         public async Task DeleteUserPreference(string key)
         {
-            var address = BaseAddress + $"0.6/user/preferences/{key}";
+            var address = BaseAddress + $"0.6/user/preferences/{Encode(key)}";
             await SendAuthRequest(HttpMethod.Delete, address, null);
         }
         #endregion
 
         #region Changesets and Element Changes
-
         /// <inheritdoc />
         public async Task<long> CreateChangeset(TagsCollectionBase tags)
         {
@@ -136,19 +140,16 @@ namespace OsmSharp.IO.API
         }
 
         /// <inheritdoc />
-        public async Task UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
+        public async Task<int> UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
         {
             switch (osmGeo.Type)
             {
                 case OsmGeoType.Node:
-                    await UpdateElement(changesetId, osmGeo as OsmGeo);
-                    break;
+                    return await UpdateElement(changesetId, osmGeo as OsmGeo);
                 case OsmGeoType.Way:
-                    await UpdateElement(changesetId, ((CompleteWay)osmGeo).ToSimple());
-                    break;
+                    return await UpdateElement(changesetId, ((CompleteWay)osmGeo).ToSimple());
                 case OsmGeoType.Relation:
-                    await UpdateElement(changesetId, ((CompleteRelation)osmGeo).ToSimple());
-                    break;
+                    return await UpdateElement(changesetId, ((CompleteRelation)osmGeo).ToSimple());
                 default:
                     throw new Exception($"Invalid OSM geometry type: {osmGeo.Type}");
             }
@@ -210,7 +211,6 @@ namespace OsmSharp.IO.API
         #endregion
 
         #region Traces
-
         /// <inheritdoc />
         public async Task<GpxFile[]> GetTraces()
         {
@@ -222,7 +222,6 @@ namespace OsmSharp.IO.API
         /// <inheritdoc />
         public async Task<int> CreateTrace(GpxFile gpx, Stream fileStream)
         {
-            Validate.TraceHasNameDescriptionAndVisibility(gpx);
             var address = BaseAddress + "0.6/gpx/create";
             var form = new MultipartFormDataContent();
             form.Add(new StringContent(gpx.Description), "\"description\"");
@@ -255,7 +254,6 @@ namespace OsmSharp.IO.API
         #endregion
 
         #region Notes
-
         /// <inheritdoc />
         public async Task<Note> CommentNote(long noteId, string text)
         {

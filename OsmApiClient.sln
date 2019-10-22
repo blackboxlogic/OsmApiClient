@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmApiClient", "src\OsmApiC
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02AFE1C4-242D-4443-9CBE-6F69B8D32E6B}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject

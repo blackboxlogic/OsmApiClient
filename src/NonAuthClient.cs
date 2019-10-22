@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OsmSharp.IO.API
 {
-    public partial class NonAuthClient : INonAuthClient
+    public class NonAuthClient : INonAuthClient
     {
         /// <summary>
         /// The OSM base address
@@ -33,15 +33,23 @@ namespace OsmSharp.IO.API
         private readonly HttpClient _httpClient;
         protected readonly ILogger _logger;
 
+        /// <summary>
+        /// Creates an instance of a NonAuthClient which can make
+        /// unauthenticated (generally read-only) calls to the OSM API.
+        /// </summary>
+        /// <param name="baseAddress">The base address for the OSM API (for example: 'https://www.openstreetmap.org/api/0.6/')</param>
+        /// <param name="httpClient">An HttpClient</param>
+        /// <param name="logger">For logging out details of requests. Optional.</param>
         public NonAuthClient(string baseAddress,
             HttpClient httpClient,
-            ILogger logger)
+            ILogger logger = null)
         {
             BaseAddress = baseAddress;
             _httpClient = httpClient;
             _logger = logger;
         }
 
+        #region Miscellaneous
         /// <summary>
         /// Available API versions
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Available_API_versions:_GET_.2Fapi.2Fversions">
@@ -77,7 +85,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <summary>
-        /// Details of a user
+        /// Details of a User
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Details_of_a_user">
         /// GET /api/0.6/user/#id</see>.
         /// </summary>
@@ -89,7 +97,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <summary>
-        /// Details of multiple users
+        /// Details of multiple Users
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Details_of_multiple_users">
         /// GET /api/0.6/users?users=#id1,#id2,...,#idn</see>.
         /// </summary>
@@ -99,13 +107,24 @@ namespace OsmSharp.IO.API
             var osm = await Get<Osm>(address);
             return osm.Users;
         }
+        #endregion
 
         #region Elements
+        /// <summary>
+        /// Gets a Way, including the details of each Node in it
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Full:_GET_.2Fapi.2F0.6.2F.5Bway.7Crelation.5D.2F.23id.2Ffull">
+        /// GET /api/0.6/way/#id/full</see>.
+        /// </summary>
         public Task<CompleteWay> GetCompleteWay(long id)
         {
             return GetCompleteElement<CompleteWay>(id);
         }
 
+        /// <summary>
+        /// Gats a Relation, including the details of each Element in it
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Full:_GET_.2Fapi.2F0.6.2F.5Bway.7Crelation.5D.2F.23id.2Ffull">
+        /// GET /api/0.6/relation/#id/full</see>.
+        /// </summary>
         public Task<CompleteRelation> GetCompleteRelation(long id)
         {
             return GetCompleteElement<CompleteRelation>(id);
@@ -128,16 +147,31 @@ namespace OsmSharp.IO.API
             return element;
         }
 
+        /// <summary>
+        /// Gets a Node and its details
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
+        /// GET /api/0.6/node/#id</see>.
+        /// </summary>
         public async Task<Node> GetNode(long id)
         {
             return await GetElement<Node>(id);
         }
 
+        /// <summary>
+        /// Gets a Way and its details (but not the details of its Nodes)
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
+        /// GET /api/0.6/way/#id</see>.
+        /// </summary>
         public async Task<Way> GetWay(long id)
         {
             return await GetElement<Way>(id);
         }
 
+        /// <summary>
+        /// Gets a Relation and its details (but not the details of its elements)
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
+        /// GET /api/0.6/relation/#id</see>.
+        /// </summary>
         public async Task<Relation> GetRelation(long id)
         {
             return await GetElement<Relation>(id);
@@ -156,16 +190,31 @@ namespace OsmSharp.IO.API
             return elements.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Gets a Node's history
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#History:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Fhistory">
+        /// GET /api/0.6/node/#id/history</see>.
+        /// </summary>
         public async Task<Node[]> GetNodeHistory(long id)
         {
             return await GetElementHistory<Node>(id);
         }
 
+        /// <summary>
+        /// Gets a Way's history
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#History:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Fhistory">
+        /// GET /api/0.6/way/#id/history</see>.
+        /// </summary>
         public async Task<Way[]> GetWayHistory(long id)
         {
             return await GetElementHistory<Way>(id);
         }
 
+        /// <summary>
+        /// Gets a Relation's history
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#History:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Fhistory">
+        /// GET /api/0.6/relation/#id/history</see>.
+        /// </summary>
         public async Task<Relation[]> GetRelationHistory(long id)
         {
             return await GetElementHistory<Relation>(id);
@@ -184,16 +233,31 @@ namespace OsmSharp.IO.API
             return elements.ToArray();
         }
 
+        /// <summary>
+        /// Gets a Node's version
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
+        /// GET /api/0.6/node/#id/#version</see>.
+        /// </summary>
         public async Task<Node> GetNodeVersion(long id, int version)
         {
             return await GetElementVersion<Node>(id, version);
         }
 
+        /// <summary>
+        /// Gets a Way's version
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
+        /// GET /api/0.6/way/#id/#version</see>.
+        /// </summary>
         public async Task<Way> GetWayVersion(long id, int version)
         {
             return await GetElementVersion<Way>(id, version);
         }
 
+        /// <summary>
+        /// Gets a Relation's version
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
+        /// GET /api/0.6/relation/#id/#version</see>.
+        /// </summary>
         public async Task<Relation> GetRelationVersion(long id, int version)
         {
             return await GetElementVersion<Relation>(id, version);
@@ -212,16 +276,31 @@ namespace OsmSharp.IO.API
             return elements.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Gets many Nodes
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
+        /// GET /api/0.6/nodes?#parameters</see>.
+        /// </summary>
         public async Task<Node[]> GetNodes(params long[] ids)
         {
             return await GetElements<Node>(ids);
         }
 
+        /// <summary>
+        /// Gets many Ways
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
+        /// GET /api/0.6/ways?#parameters</see>.
+        /// </summary>
         public async Task<Way[]> GetWays(params long[] ids)
         {
             return await GetElements<Way>(ids);
         }
 
+        /// <summary>
+        /// Gets many Relations
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
+        /// GET /api/0.6/relations?#parameters</see>.
+        /// </summary>
         public async Task<Relation[]> GetRelations(params long[] ids)
         {
             return await GetElements<Relation>(ids);
@@ -233,16 +312,31 @@ namespace OsmSharp.IO.API
             return await GetElements<TOsmGeo>(idVersions);
         }
 
+        /// <summary>
+        /// Gets many Nodes at specific versions
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
+        /// GET /api/0.6/nodes?#parameters</see>.
+        /// </summary>
         public async Task<Node[]> GetNodes(IEnumerable<KeyValuePair<long, int?>> idVersions)
         {
             return await GetElements<Node>(idVersions);
         }
 
+        /// <summary>
+        /// Gets many Ways at specific versions
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
+        /// GET /api/0.6/ways?#parameters</see>.
+        /// </summary>
         public async Task<Way[]> GetWays(IEnumerable<KeyValuePair<long, int?>> idVersions)
         {
             return await GetElements<Way>(idVersions);
         }
 
+        /// <summary>
+        /// Gets many Relations at specific versions
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
+        /// GET /api/0.6/relations?#parameters</see>.
+        /// </summary>
         public async Task<Relation[]> GetRelations(IEnumerable<KeyValuePair<long, int?>> idVersions)
         {
             return await GetElements<Relation>(idVersions);
@@ -263,16 +357,31 @@ namespace OsmSharp.IO.API
             return elements.ToArray();
         }
 
+        /// <summary>
+        /// Gets the Relations containing a specific Node
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Relations_for_element:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Frelations">
+        /// GET /api/0.6/node/#id/relations</see>.
+        /// </summary>
         public async Task<Relation[]> GetNodeRelations(long id)
         {
             return await GetElementRelations<Node>(id);
         }
 
+        /// <summary>
+        /// Gets the Relations containing a specific Way
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Relations_for_element:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Frelations">
+        /// GET /api/0.6/way/#id/relations</see>.
+        /// </summary>
         public async Task<Relation[]> GetWayRelations(long id)
         {
             return await GetElementRelations<Way>(id);
         }
 
+        /// <summary>
+        /// Gets the Relations containing a specific Relation
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Relations_for_element:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2Frelations">
+        /// GET /api/0.6/relation/#id/relations</see>.
+        /// </summary>
         public async Task<Relation[]> GetRelationRelations(long id)
         {
             return await GetElementRelations<Relation>(id);
@@ -408,6 +517,11 @@ namespace OsmSharp.IO.API
         #endregion
 
         #region Notes
+        /// <summary>
+        /// Gets a Note
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Read:_GET_.2Fapi.2F0.6.2Fnotes.2F.23id">
+        /// GET /api/0.6/notes/#id</see>.
+        /// </summary>
         public async Task<Note> GetNote(long id)
         {
             var address = BaseAddress + $"0.6/notes/{id}";
@@ -415,6 +529,11 @@ namespace OsmSharp.IO.API
             return osm.Notes?.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Gets many a Notes in a box and with the spcified time since closed
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Retrieving_notes_data_by_bounding_box:_GET_.2Fapi.2F0.6.2Fnotes">
+        /// GET /api/0.6/notes?[parameters]</see>.
+        /// </summary>
         /// <param name="limit">Must be between 1 and 10,000.</param>
         /// <param name="maxClosedDays">0 means only open notes. -1 mean all (open and closed) notes.</param>
         public async Task<Note[]> GetNotes(Bounds bounds, int limit = 100, int maxClosedDays = 7)
@@ -425,6 +544,11 @@ namespace OsmSharp.IO.API
             return osm.Notes;
         }
 
+        /// <summary>
+        /// Gets an RSS feed of Notes in an area
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#RSS_Feed:_GET_.2Fapi.2F0.6.2Fnotes.2Ffeed">
+        /// GET /api/0.6/notes/feed</see>.
+        /// </summary>
         public async Task<Stream> GetNotesRssFeed(Bounds bounds)
         {
             var address = BaseAddress + $"0.6/notes/feed?bbox={ToString(bounds)}";
@@ -434,6 +558,9 @@ namespace OsmSharp.IO.API
         }
 
         /// <summary>
+        /// Search for Notes
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Search_for_notes:_GET_.2Fapi.2F0.6.2Fnotes.2Fsearch">
+        /// GET /api/0.6/notes/search</see>.
         /// </summary>
         /// <param name="searchText">Specifies the search query. This is the only required field.</param>
         /// <param name="userId">Specifies the creator of the returned notes by the id of the user. Does not work together with the display_name parameter</param>
@@ -473,6 +600,11 @@ namespace OsmSharp.IO.API
             return date.ToString("yyyy-MM-dd HH:mm:ss") + " UTC";
         }
 
+        /// <summary>
+        /// Creates a new Note
+        /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create_a_new_note:_Create:_POST_.2Fapi.2F0.6.2Fnotes">
+        /// POST /api/0.6/notes</see>.
+        /// </summary>
         public async Task<Note> CreateNote(float latitude, float longitude, string text)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
@@ -515,6 +647,8 @@ namespace OsmSharp.IO.API
         }
 
         #region Http
+        protected static readonly Func<string, string> Encode = HttpUtility.UrlEncode;
+
         protected async Task<T> Get<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
         {
             var content = await Get(address, auth);

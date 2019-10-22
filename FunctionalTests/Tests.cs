@@ -38,7 +38,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 		private static TagsCollection ChangeSetTags = new TagsCollection()
 		{
 			new Tag("comment", "Running a functional test of an automated system."),
-			new Tag("created_by", "https://github.com/blackboxlogic/OsmApiClient"),
+			new Tag("created_by", "https://github.com/OsmSharp/osm-api-client/"),
 			new Tag("bot", "yes")
 		};
 

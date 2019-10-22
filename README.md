@@ -1,6 +1,6 @@
 # OsmApiClient
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
-Please read the API's documentation and use it responsibly.
+Please read the API's documentation and use it responsibly. Misuse can have an adverse affect on the OSM ecosystem.
 Pull requests are welcome. You will need VisualStudio or VS Code to modify this project.
 
 ### Features
@@ -35,60 +35,63 @@ await client.CloseChangeset(changeSetId);
 See the tests for examples of each operation.
 
 # Supported Operations
+
+:full_moon: = Does not use authentication
+
+:last_quarter_moon: = With or without authentication (behavior may differ)
+
+:new_moon: = Requires authentication
+
 ### General Api Stuff
-- Get Api versions
-- Get Api capabilities
-- Get a map section
+- :full_moon: Get Api versions
+- :full_moon: Get Api capabilities
+- :full_moon: Get a map section
 ### Change Sets
-- Get a specific changeset's metadata
-- Get a specific changeset's changes
-- Search for changesets
-- \*\*Create a new changeset with metadata
-- \*\*Add changes to an open changeset
-- \*\*Update an open changeset's metadata
-- \*\*Close an open changeset
-- \*\*Add comments to a changeset
-- \*\*Subscribe to a changeset
-- \*\*UnSubscribe to a changeset
+- :full_moon: Get a specific changeset's metadata
+- :full_moon: Get a specific changeset's changes
+- :full_moon: Search for changesets
+- :new_moon: Create a new changeset with metadata
+- :new_moon: Add changes to an open changeset
+- :new_moon: Update an open changeset's metadata
+- :new_moon: Close an open changeset
+- :new_moon: Add comments to a changeset
+- :new_moon: Subscribe to a changeset
+- :new_moon: UnSubscribe to a changeset
 ### Map Elements
-- Get an element
-- Get an element's version history
-- Get a specific version of an element
-- Search for elements
-- Get relations containing a specific element
-- Get ways containing a specific node
-- Get a relation and all of its elements
-- Get a way and all of its nodes
-- \*\*Create a new element
-- \*\*Update an element
-- \*\*Delete an element
+- :full_moon: Get an element
+- :full_moon: Get an element's version history
+- :full_moon: Get a specific version of an element
+- :full_moon: Search for elements
+- :full_moon: Get relations containing a specific element
+- :full_moon: Get ways containing a specific node
+- :full_moon: Get a relation and all of its elements
+- :full_moon: Get a way and all of its nodes
+- :new_moon: Create a new element
+- :new_moon: Update an element
+- :new_moon: Delete an element
 ### Gpx Files
-- Get trackpoints in an area
-- \*Get a gpx file's metadata
-- \*Get a gpx file's original upload data
-- \*\*Get current user's gpx files
-- \*\*Create a new gpx file
-- \*\*Update a gpx file's metadata
-- \*\*Delete a gpx file
+- :full_moon: Get trackpoints in an area
+- :last_quarter_moon: Get a gpx file's metadata
+- :last_quarter_moon: Get a gpx file's original upload data
+- :new_moon: Get current user's gpx files
+- :new_moon: Create a new gpx file
+- :new_moon: Update a gpx file's metadata
+- :new_moon: Delete a gpx file
 ### User Info
-- Get details about a user
-- Get details about many users
-- \*\*Get current user's permissions
-- \*\*Get current user's details
-- \*\*Get current user's preferences
-- \*\*Update current user's preferences
-- \*\*Get a current user's preference
-- \*\*Update a current user's preference
-- \*\*Delete a current user's preference
+- :full_moon: Get details about a user
+- :full_moon: Get details about many users
+- :new_moon: Get current user's permissions
+- :new_moon: Get current user's details
+- :new_moon: Get current user's preferences
+- :new_moon: Update current user's preferences
+- :new_moon: Get a current user's preference
+- :new_moon: Update a current user's preference
+- :new_moon: Delete a current user's preference
 ### Notes
-- Search for notes
-- Get an RSS feed of notes in an area
-- Get a note
-- \*Create a new note
-- \*Comment on a note
-- \*\*Close a note
-- \*\*ReOpen a note
-
-\* With or without Authentication
-
-\*\* Requies Authentication
+- :full_moon: Search for notes
+- :full_moon: Get an RSS feed of notes in an area
+- :full_moon: Get a note
+- :last_quarter_moon: Create a new note
+- :new_moon: Comment on a note
+- :new_moon: Close a note
+- :new_moon: ReOpen a note
