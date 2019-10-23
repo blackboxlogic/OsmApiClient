@@ -8,9 +8,9 @@ using OsmSharp.Tags;
 namespace OsmSharp.IO.API
 {
     /// <summary>
-    /// Authenticationed OSM API Client
+    /// Authenticated OSM API Client
     /// </summary>
-    public interface IAuthClient
+    public interface IAuthClient : INonAuthClient
     {
         /// <summary>
         /// Create a Changeset, it is better to use <see cref="UploadChangeset(long, OsmChange)"/>

@@ -49,7 +49,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 			Visibility = Visibility.Public,
 		};
 
-		public static async Task TestClient(NonAuthClient client)
+		public static async Task TestClient(INonAuthClient client)
 		{
 			var capabilities = await client.GetCapabilities();
 			var apiVersion = await client.GetVersions();
@@ -110,7 +110,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 				newNote?.Status == Note.NoteStatus.Open);
 		}
 
-		public static async Task TestAuthClient(AuthClient client)
+		public static async Task TestAuthClient(IAuthClient client)
 		{
 			var permissions = await client.GetPermissions();
 			True(permissions?.UserPermission?.Any());
