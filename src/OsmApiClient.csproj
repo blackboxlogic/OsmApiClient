@@ -14,6 +14,7 @@
     <Authors>Alex Hennings &amp; Harel Mazor</Authors>
     <RepositoryType>git</RepositoryType>
     <RootNamespace>OsmSharp.IO.API</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
