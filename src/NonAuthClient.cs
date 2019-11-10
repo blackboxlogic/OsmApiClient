@@ -22,8 +22,8 @@ namespace OsmSharp.IO.API
         /// The OSM base address
         /// </summary>
         /// <example>
-        /// "https://master.apis.dev.openstreetmap.org/api/0.6/"
-        /// "https://www.openstreetmap.org/api/0.6/"
+        /// "https://master.apis.dev.openstreetmap.org/api/"
+        /// "https://www.openstreetmap.org/api/"
         /// </example>
         protected readonly string BaseAddress;
 
