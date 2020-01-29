@@ -18,6 +18,10 @@ jobs:
         dotnet-version: 2.2.108
     - name: Build and Pack
       run: dotnet build --configuration Release
+    - name: Setup Nuget.exe
+      uses: warrenbuckley/Setup-Nuget@v1
+    - name: test nuget.exe
+      run: nuget.exe -help
     - run: echo github.event {github.event}
     - name: Nuget publish
       shell: pwsh
