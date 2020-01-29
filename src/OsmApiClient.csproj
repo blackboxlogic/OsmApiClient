@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.1-beta.4</Version>
+    <Version>0.0.1-beta.6</Version>
     <RepositoryUrl>https://github.com/OsmSharp/osm-api-client/</RepositoryUrl>
     <PackageReleaseNotes>Working toward the first release.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/OsmSharp/osm-api-client/</PackageProjectUrl>
