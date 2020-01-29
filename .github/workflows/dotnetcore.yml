@@ -15,11 +15,18 @@ jobs:
         dotnet-version: 2.2.108
     - name: Build with dotnet
       run: dotnet build --configuration Release
-  pack:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Package
-        shell: pwsh
-        run: echo ${{ secrets.password }}
-#nuget.exe push -Source {NuGet package source URL} -ApiKey key HelloWorld\HelloWorld.nupkg
+    - uses: actions/upload-artifact@v1
+      with:
+        name: OsmApiClient.0.0.1-beta.4.nupkg
+        path: /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/OsmApiClient.0.0.1-beta.4.nupkg
+#    - name: Nuget publish
+#      run: nuget.exe push -Source {NuGet package source URL} -ApiKey key HelloWorld\HelloWorld.nupkg
+#   pack:
+#     runs-on: ubuntu-latest
+#     needs: build
+#     steps:
+#       - name: Package
+#         shell: pwsh
+# #https://docs.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-push
+#         run: echo ${{ secrets.password }}
+# #nuget.exe push -Source {NuGet package source URL} -ApiKey key HelloWorld\HelloWorld.nupkg
