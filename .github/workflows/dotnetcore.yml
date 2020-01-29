@@ -21,7 +21,7 @@ jobs:
     - run: echo github.event {github.event}
     - name: Nuget publish
       shell: pwsh
-      run: nuget.exe push -SkipDuplicate -NonInteractive -Source https://api.nuget.org/v3/index.json -ApiKey ${{NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/OsmApiClient.0.0.1-beta.4.nupkg
+      run: nuget.exe push -SkipDuplicate -NonInteractive -Source https://api.nuget.org/v3/index.json -ApiKey ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/OsmApiClient.0.0.1-beta.4.nupkg
     - uses: actions/upload-artifact@v1
       with:
         name: OsmApiClient.0.0.1-beta.4.nupkg
