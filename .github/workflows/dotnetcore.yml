@@ -19,7 +19,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release
     - name: Pack
-      run: dotnet pack OsmApiClient.csproj -o arti
+      run: dotnet pack /home/runner/work/OsmApiClient/OsmApiClient/src/OsmApiClient.csproj -o Artifacts
 #    - uses: actions/upload-artifact@v1
 #      with:
 #        name: OsmApiClient.0.0.1-beta.4.nupkg
