@@ -14,11 +14,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 2.2.108
+#      with:
+#        dotnet-version: 2.2.108
     - name: Build and Pack
       run: dotnet build --configuration Release
-    - run: echo github.event {github.event}
     - run: dotnet --version
     - run: dotnet nuget --version
     - run: dotnet nuget push --help
