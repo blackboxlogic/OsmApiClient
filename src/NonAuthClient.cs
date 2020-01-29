@@ -238,7 +238,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
         /// GET /api/0.6/node/#id/#version</see>.
         /// </summary>
-        public async Task<Node> GetNodeVersion(long id, int version)
+        public async Task<Node> GetNodeVersion(long id, long version)
         {
             return await GetElementVersion<Node>(id, version);
         }
@@ -248,7 +248,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
         /// GET /api/0.6/way/#id/#version</see>.
         /// </summary>
-        public async Task<Way> GetWayVersion(long id, int version)
+        public async Task<Way> GetWayVersion(long id, long version)
         {
             return await GetElementVersion<Way>(id, version);
         }
@@ -258,7 +258,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
         /// GET /api/0.6/relation/#id/#version</see>.
         /// </summary>
-        public async Task<Relation> GetRelationVersion(long id, int version)
+        public async Task<Relation> GetRelationVersion(long id, long version)
         {
             return await GetElementVersion<Relation>(id, version);
         }
@@ -268,7 +268,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Version:_GET_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id.2F.23version">
         /// GET /api/0.6/[node|way|relation]/#id/#version</see>.
         /// </summary>
-        private async Task<TOsmGeo> GetElementVersion<TOsmGeo>(long id, int version) where TOsmGeo : OsmGeo, new()
+        private async Task<TOsmGeo> GetElementVersion<TOsmGeo>(long id, long version) where TOsmGeo : OsmGeo, new()
         {
             var type = new TOsmGeo().Type.ToString().ToLower();
             var address = BaseAddress + $"0.6/{type}/{id}/{version}";
@@ -308,7 +308,7 @@ namespace OsmSharp.IO.API
 
         private async Task<TOsmGeo[]> GetElements<TOsmGeo>(params long[] ids) where TOsmGeo : OsmGeo, new()
         {
-            var idVersions = ids.Select(id => new KeyValuePair<long, int?>(id, null));
+            var idVersions = ids.Select(id => new KeyValuePair<long, long?>(id, null));
             return await GetElements<TOsmGeo>(idVersions);
         }
 
@@ -317,7 +317,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
         /// GET /api/0.6/nodes?#parameters</see>.
         /// </summary>
-        public async Task<Node[]> GetNodes(IEnumerable<KeyValuePair<long, int?>> idVersions)
+        public async Task<Node[]> GetNodes(IEnumerable<KeyValuePair<long, long?>> idVersions)
         {
             return await GetElements<Node>(idVersions);
         }
@@ -327,7 +327,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
         /// GET /api/0.6/ways?#parameters</see>.
         /// </summary>
-        public async Task<Way[]> GetWays(IEnumerable<KeyValuePair<long, int?>> idVersions)
+        public async Task<Way[]> GetWays(IEnumerable<KeyValuePair<long, long?>> idVersions)
         {
             return await GetElements<Way>(idVersions);
         }
@@ -337,7 +337,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
         /// GET /api/0.6/relations?#parameters</see>.
         /// </summary>
-        public async Task<Relation[]> GetRelations(IEnumerable<KeyValuePair<long, int?>> idVersions)
+        public async Task<Relation[]> GetRelations(IEnumerable<KeyValuePair<long, long?>> idVersions)
         {
             return await GetElements<Relation>(idVersions);
         }
@@ -347,7 +347,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
         /// GET /api/0.6/[nodes|ways|relations]?#parameters</see>.
         /// </summary>
-        private async Task<TOsmGeo[]> GetElements<TOsmGeo>(IEnumerable<KeyValuePair<long, int?>> idVersions) where TOsmGeo : OsmGeo, new()
+        private async Task<TOsmGeo[]> GetElements<TOsmGeo>(IEnumerable<KeyValuePair<long, long?>> idVersions) where TOsmGeo : OsmGeo, new()
         {
             var type = new TOsmGeo().Type.ToString().ToLower();
             // For exmple: "12,13,14v1,15v1"
@@ -494,7 +494,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Download_Metadata:_GET_.2Fapi.2F0.6.2Fgpx.2F.23id.2Fdetails">
         /// GET /api/0.6/gpx/#id/details</see>.
         /// </summary>
-        public async Task<GpxFile> GetTraceDetails(int id)
+        public async Task<GpxFile> GetTraceDetails(long id)
         {
             var address = BaseAddress + $"0.6/gpx/{id}/details";
             var osm = await Get<Osm>(address, c => AddAuthentication(c, address));
@@ -508,7 +508,7 @@ namespace OsmSharp.IO.API
         /// This will return exactly what was uploaded, which might not be a gpx file (it could be a zip etc.)
         /// </summary>
         /// <returns>A stream of a GPX (version 1.0) file.</returns>
-        public async Task<TypedStream> GetTraceData(int id)
+        public async Task<TypedStream> GetTraceData(long id)
         {
             var address = BaseAddress + $"0.6/gpx/{id}/data";
             var content = await Get(address, c => AddAuthentication(c, address));

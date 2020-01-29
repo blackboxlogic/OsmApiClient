@@ -114,7 +114,7 @@ namespace OsmSharp.IO.API
         /// <param name="changesetId">The ID of an OPEN Changeset.</param>
         /// <param name="osmGeo"></param>
         /// <returns>The Element's new version number</returns>
-        Task<int> UpdateElement(long changesetId, ICompleteOsmGeo osmGeo);
+        Task<long> UpdateElement(long changesetId, ICompleteOsmGeo osmGeo);
         /// <summary>
         /// Updates an element using a <see cref="OsmGeo"/> object
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Update:_PUT_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
@@ -122,7 +122,7 @@ namespace OsmSharp.IO.API
         /// </summary>
         /// <param name="changesetId">The ID of an OPEN Changeset.</param>
         /// <returns>The Element's new version number</returns>
-        Task<int> UpdateElement(long changesetId, OsmGeo osmGeo);
+        Task<long> UpdateElement(long changesetId, OsmGeo osmGeo);
         /// <summary>
         /// Delete an OSM element as part of the given changeset
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Delete:_DELETE_.2Fapi.2F0.6.2F.5Bnode.7Cway.7Crelation.5D.2F.23id">
@@ -131,7 +131,7 @@ namespace OsmSharp.IO.API
         /// <param name="changesetId">The ID of an OPEN Changeset.</param>
         /// <param name="osmGeo"></param>
         /// <returns>The Element's new version number</returns>
-        Task<int> DeleteElement(long changesetId, OsmGeo osmGeo);
+        Task<long> DeleteElement(long changesetId, OsmGeo osmGeo);
         /// <summary>
         /// Gets the current User's GPX Trace Files
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#List:_GET_.2Fapi.2F0.6.2Fuser.2Fgpx_files">
@@ -147,7 +147,7 @@ namespace OsmSharp.IO.API
         /// <param name="gpx"></param>
         /// <param name="fileStream"></param>
         /// <returns>The GPX Trace File's ID</returns>
-        Task<int> CreateTrace(GpxFile gpx, Stream fileStream);
+        Task<long> CreateTrace(GpxFile gpx, Stream fileStream);
         /// <summary>
         /// Updates a GPX Trace File (overwrites with a new one)
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Update:_PUT_.2Fapi.2F0.6.2Fgpx.2F.23id">

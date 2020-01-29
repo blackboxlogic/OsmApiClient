@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.1-beta.6</Version>
+    <Version>0.0.1-beta.7</Version>
     <RepositoryUrl>https://github.com/OsmSharp/osm-api-client/</RepositoryUrl>
     <PackageReleaseNotes>Working toward the first release.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/OsmSharp/osm-api-client/</PackageProjectUrl>
@@ -20,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.2" />
     <PackageReference Include="OAuth.DotNetCore" Version="3.0.1" />
-    <PackageReference Include="OsmSharp" Version="7.0.0-pre001" />
+    <PackageReference Include="OsmSharp" Version="7.0.0-pre006" />
   </ItemGroup>
 
 </Project>

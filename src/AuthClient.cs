@@ -140,7 +140,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <inheritdoc />
-        public async Task<int> UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
+        public async Task<long> UpdateElement(long changesetId, ICompleteOsmGeo osmGeo)
         {
             switch (osmGeo.Type)
             {
@@ -156,7 +156,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <inheritdoc />
-        public async Task<int> UpdateElement(long changesetId, OsmGeo osmGeo)
+        public async Task<long> UpdateElement(long changesetId, OsmGeo osmGeo)
         {
             Validate.ElementHasAVersion(osmGeo);
             var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
@@ -164,11 +164,11 @@ namespace OsmSharp.IO.API
             var content = new StringContent(osmRequest.SerializeToXml());
             var responseContent = await SendAuthRequest(HttpMethod.Put, address, content);
             var newVersionNumber = await responseContent.ReadAsStringAsync();
-            return int.Parse(newVersionNumber);
+            return long.Parse(newVersionNumber);
         }
 
         /// <inheritdoc />
-        public async Task<int> DeleteElement(long changesetId, OsmGeo osmGeo)
+        public async Task<long> DeleteElement(long changesetId, OsmGeo osmGeo)
         {
             Validate.ElementHasAVersion(osmGeo);
             var address = BaseAddress + $"0.6/{osmGeo.Type.ToString().ToLower()}/{osmGeo.Id}";
@@ -176,7 +176,7 @@ namespace OsmSharp.IO.API
             var content = new StringContent(osmRequest.SerializeToXml());
             var responseContent = await SendAuthRequest(HttpMethod.Delete, address, content);
             var newVersionNumber = await responseContent.ReadAsStringAsync();
-            return int.Parse(newVersionNumber);
+            return long.Parse(newVersionNumber);
         }
 
         /// <inheritdoc />
@@ -220,7 +220,7 @@ namespace OsmSharp.IO.API
         }
 
         /// <inheritdoc />
-        public async Task<int> CreateTrace(GpxFile gpx, Stream fileStream)
+        public async Task<long> CreateTrace(GpxFile gpx, Stream fileStream)
         {
             var address = BaseAddress + "0.6/gpx/create";
             var form = new MultipartFormDataContent();
@@ -233,7 +233,7 @@ namespace OsmSharp.IO.API
             form.Add(stream, "file", cleanName);
             var content = await SendAuthRequest(HttpMethod.Post, address, form);
             var id = await content.ReadAsStringAsync();
-            return int.Parse(id);
+            return long.Parse(id);
         }
 
         /// <inheritdoc />

@@ -67,7 +67,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 			var nodeVersion = await client.GetNodeVersion(nodeId, 3);
 			NotNull(node, way, wayComplete, relation, relationComplete, nodeVersion);
 			var nodeHistory = await client.GetNodeHistory(nodeId);
-			var multifetchNodes = await client.GetNodes(new Dictionary<long, int?>() { { nodeId, null }, { nodeId + 1, 1 } });
+			var multifetchNodes = await client.GetNodes(new Dictionary<long, long?>() { { nodeId, null }, { nodeId + 1, 1 } });
 			var nodeRelations = await client.GetNodeRelations(nodeId);
 			var nodeWays = await client.GetNodeWays(nodeId);
 			True(nodeHistory?.Any(), multifetchNodes?.Any(), nodeRelations?.Any(), nodeWays?.Any());
