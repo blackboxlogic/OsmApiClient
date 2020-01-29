@@ -1,5 +1,5 @@
 # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
-name: Star_Build-Pack-Publish
+name: Build-Pack-Publish
 on:
 #  watch:
 #    types: [started]
@@ -18,8 +18,8 @@ jobs:
 #        dotnet-version: 3.1.101
     - name: Build
       run: dotnet build --configuration Release
-    - name: Pack
-      run: dotnet pack /home/runner/work/OsmApiClient/OsmApiClient/src/OsmApiClient.csproj -o Artifacts
+#    - name: Pack
+#      run: dotnet pack /home/runner/work/OsmApiClient/OsmApiClient/src/OsmApiClient.csproj -o Artifacts
 #    - uses: actions/upload-artifact@v1
 #      with:
 #        name: OsmApiClient.0.0.1-beta.4.nupkg
