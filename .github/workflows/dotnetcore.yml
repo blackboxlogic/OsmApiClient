@@ -19,6 +19,9 @@ jobs:
     - name: Build and Pack
       run: dotnet build --configuration Release
     - run: echo github.event {github.event}
+    - run: dotnet --version
+    - run: dotnet nuget --version
+    - run: dotnet nuget push --help
     - name: Nuget publish
       run: dotnet nuget push --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/OsmApiClient.0.0.1-beta.4.nupkg
     - uses: actions/upload-artifact@v1
