@@ -16,15 +16,14 @@ jobs:
       uses: actions/setup-dotnet@v1
 #      with:
 #        dotnet-version: 3.1.101
-    - name: Build and Pack
+    - name: Build
       run: dotnet build --configuration Release
-    - run: dotnet --version
-    - run: dotnet nuget --version
-    - run: dotnet nuget push --help
-    - uses: actions/upload-artifact@v1
-      with:
-        name: OsmApiClient.0.0.1-beta.4.nupkg
-        path: /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/OsmApiClient.*.nupkg
+    - name: Pack
+      run: dotnet pack OsmApiClient.csproj -o arti
+#    - uses: actions/upload-artifact@v1
+#      with:
+#        name: OsmApiClient.0.0.1-beta.4.nupkg
+#        path: /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
     - name: Nuget publish
-      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/OsmApiClient.*.nupkg
+      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
 
