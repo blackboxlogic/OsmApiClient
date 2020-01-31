@@ -96,3 +96,6 @@ See the [functional tests](https://github.com/blackboxlogic/OsmApiClient/blob/ma
 - :new_moon: Comment on a note
 - :new_moon: Close a note
 - :new_moon: ReOpen a note
+
+# Contribute
+Issues and pull requests are welcome.
