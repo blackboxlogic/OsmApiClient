@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.1-beta.7</Version>
+    <Version>0.0.1</Version>
     <RepositoryUrl>https://github.com/OsmSharp/osm-api-client/</RepositoryUrl>
-    <PackageReleaseNotes>Working toward the first release.</PackageReleaseNotes>
+    <PackageReleaseNotes>First Release</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/OsmSharp/osm-api-client/</PackageProjectUrl>
     <Description>This is a simple C# client to allow using OSM API easily.</Description>
     <PackageTags>osm;openstreetmap;client</PackageTags>
