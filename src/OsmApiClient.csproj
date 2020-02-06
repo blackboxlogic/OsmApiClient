@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <RepositoryUrl>https://github.com/OsmSharp/osm-api-client/</RepositoryUrl>
     <PackageReleaseNotes>Adding GetElements(OsmGeoKey[] keys) which can fetch multiple element types in one call.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/OsmSharp/osm-api-client/</PackageProjectUrl>
