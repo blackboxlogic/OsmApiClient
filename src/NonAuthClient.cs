@@ -379,7 +379,7 @@ namespace OsmSharp.IO.API
             {
                 var type = new TOsmGeo().Type.ToString().ToLower();
                 // For exmple: "12,13,14v1,15v1"
-                var parameters = string.Join(",", idVersions.Select(e => e.Value.HasValue ? $"{e.Key}v{e.Value}" : e.Key.ToString()));
+                var parameters = string.Join(",", chunk.Select(e => e.Value.HasValue ? $"{e.Key}v{e.Value}" : e.Key.ToString()));
                 var address = BaseAddress + $"0.6/{type}s?{type}s={parameters}";
                 tasks.Add(GetOfType<TOsmGeo>(address));
             }
