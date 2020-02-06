@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using OsmSharp.API;
 using OsmSharp.Changesets;
 using OsmSharp.Complete;
+using OsmSharp.Db;
 
 namespace OsmSharp.IO.API
 {
@@ -29,6 +30,8 @@ namespace OsmSharp.IO.API
         Task<Node[]> GetNodes(params long[] ids);
         Task<Way[]> GetWays(params long[] ids);
         Task<Relation[]> GetRelations(params long[] ids);
+        Task<OsmGeo[]> GetElements(params OsmGeoKey[] elementKeys);
+        Task<OsmGeo[]> GetElements(Dictionary<OsmGeoKey, long?> elementKeyVersions);
         Task<Node[]> GetNodes(IEnumerable<KeyValuePair<long, long?>> idVersions);
         Task<Way[]> GetWays(IEnumerable<KeyValuePair<long, long?>> idVersions);
         Task<Relation[]> GetRelations(IEnumerable<KeyValuePair<long, long?>> idVersions);

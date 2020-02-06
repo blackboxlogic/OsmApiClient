@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OsmSharp.API;
 using OsmSharp.Changesets;
+using OsmSharp.Db;
 using OsmSharp.Tags;
 
 namespace OsmSharp.IO.API.FunctionalTests
@@ -70,7 +71,9 @@ namespace OsmSharp.IO.API.FunctionalTests
 			var multifetchNodes = await client.GetNodes(new Dictionary<long, long?>() { { nodeId, null }, { nodeId + 1, 1 } });
 			var nodeRelations = await client.GetNodeRelations(nodeId);
 			var nodeWays = await client.GetNodeWays(nodeId);
-			True(nodeHistory?.Any(), multifetchNodes?.Any(), nodeRelations?.Any(), nodeWays?.Any());
+			var multifetchElements = await client.GetElements(
+				map.Nodes.Select(n => new OsmGeoKey(n)).Concat(map.Ways.Select(n => new OsmGeoKey(n))).ToArray());
+			True(nodeHistory?.Any(), multifetchNodes?.Any(), nodeRelations?.Any(), nodeWays?.Any(), multifetchElements?.Any());
 			var changeset = await client.GetChangeset(node.ChangeSetId.Value);
 			var changesetWithDiscussion = await client.GetChangeset(node.ChangeSetId.Value, true);
 			NotNull(changeset, changesetWithDiscussion?.Discussion);

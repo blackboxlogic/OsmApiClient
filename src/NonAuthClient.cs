@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Web;
 using Microsoft.Extensions.Logging;
+using OsmSharp.Db;
 
 namespace OsmSharp.IO.API
 {
@@ -342,6 +343,29 @@ namespace OsmSharp.IO.API
             return await GetElements<Relation>(idVersions);
         }
 
+        public async Task<OsmGeo[]> GetElements(params OsmGeoKey[] elementKeys)
+        {
+            return await GetElements(elementKeys.ToDictionary(ek => ek, ek => (long?)null));
+        }
+
+        public async Task<OsmGeo[]> GetElements(Dictionary<OsmGeoKey, long?> elementKeyVersions)
+        {
+            var elements = new List<OsmGeo>();
+
+            foreach (var typeGroup in elementKeyVersions.GroupBy(kvp => kvp.Key.Type))
+            {
+                var chunkAsDictionary = typeGroup.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value);
+                if(typeGroup.Key == OsmGeoType.Node)
+                    elements.AddRange(await GetElements<Node>(chunkAsDictionary));
+                else if (typeGroup.Key == OsmGeoType.Way)
+                    elements.AddRange(await GetElements<Way>(chunkAsDictionary));
+                else if (typeGroup.Key == OsmGeoType.Relation)
+                    elements.AddRange(await GetElements<Relation>(chunkAsDictionary));
+            }
+
+            return elements.ToArray();
+        }
+
         /// <summary>
         /// Elements Multifetch
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Bnodes.7Cways.7Crelations.5D.3F.23parameters">
@@ -349,12 +373,27 @@ namespace OsmSharp.IO.API
         /// </summary>
         private async Task<TOsmGeo[]> GetElements<TOsmGeo>(IEnumerable<KeyValuePair<long, long?>> idVersions) where TOsmGeo : OsmGeo, new()
         {
-            var type = new TOsmGeo().Type.ToString().ToLower();
-            // For exmple: "12,13,14v1,15v1"
-            var parameters = string.Join(",", idVersions.Select(e => e.Value.HasValue ? $"{e.Key}v{e.Value}" : e.Key.ToString()));
-            var address = BaseAddress + $"0.6/{type}s?{type}s={parameters}";
-            var elements = await GetOfType<TOsmGeo>(address);
-            return elements.ToArray();
+            var tasks = new List<Task<IEnumerable<TOsmGeo>>>();
+
+            foreach (var chunk in Chunks(idVersions, 400)) // to avoid http error code 414, UIR too long.
+            {
+                var type = new TOsmGeo().Type.ToString().ToLower();
+                // For exmple: "12,13,14v1,15v1"
+                var parameters = string.Join(",", idVersions.Select(e => e.Value.HasValue ? $"{e.Key}v{e.Value}" : e.Key.ToString()));
+                var address = BaseAddress + $"0.6/{type}s?{type}s={parameters}";
+                tasks.Add(GetOfType<TOsmGeo>(address));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return tasks.SelectMany(t => t.Result).ToArray();
+        }
+
+        private IEnumerable<T[]> Chunks<T>(IEnumerable<T> elements, int chunkSize)
+        {
+            return elements.Select((e, i) => new { e, i })
+                .GroupBy(ei => ei.i / chunkSize) // Intentional integer division
+                .Select(g => g.Select(ei => ei.e).ToArray());
         }
 
         /// <summary>
