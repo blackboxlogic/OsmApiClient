@@ -644,7 +644,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create_a_new_note:_Create:_POST_.2Fapi.2F0.6.2Fnotes">
         /// POST /api/0.6/notes</see>.
         /// </summary>
-        public async Task<Note> CreateNote(float latitude, float longitude, string text)
+        public async Task<Note> CreateNote(double latitude, double longitude, string text)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
             query["text"] = text;
@@ -681,6 +681,11 @@ namespace OsmSharp.IO.API
         }
 
         protected string ToString(float number)
+        {
+            return number.ToString(OsmMaxPrecision);
+        }
+
+        protected string ToString(double number)
         {
             return number.ToString(OsmMaxPrecision);
         }
