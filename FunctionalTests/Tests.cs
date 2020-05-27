@@ -82,7 +82,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 			True(changesets?.Any());
 			changesets = await client.QueryChangesets(null, node.UserId, null, null, null, false, false, null);
 			True(changesets?.Any());
-			changesets = await client.QueryChangesets(null, node.UserId, null, DateTime.UtcNow.AddDays(-3), null, false, false, null);
+			changesets = await client.QueryChangesets(null, node.UserId, null, DateTime.MinValue, null, false, false, null);
 			True(changesets?.Any());
 			changesets = await client.QueryChangesets(null, null, node.UserName, null, null, false, false, null);
 			True(changesets?.Any());
