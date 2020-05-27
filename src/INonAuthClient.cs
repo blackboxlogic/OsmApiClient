@@ -49,6 +49,6 @@ namespace OsmSharp.IO.API
         Task<Note[]> GetNotes(Bounds bounds, int limit = 100, int maxClosedDays = 7);
         Task<Stream> GetNotesRssFeed(Bounds bounds);
         Task<Note[]> QueryNotes(string searchText, long? userId, string userName, int? limit, int? maxClosedDays, DateTime? fromDate, DateTime? toDate);
-        Task<Note> CreateNote(float latitude, float longitude, string text);
+        Task<Note> CreateNote(double latitude, double longitude, string text);
     }
 }

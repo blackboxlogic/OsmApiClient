@@ -14,10 +14,10 @@ namespace OsmSharp.IO.API.FunctionalTests
 	{
 		private static Bounds WashingtonDC = new Bounds()
 		{
-			MinLongitude = -77.0371918f,
-			MinLatitude = 38.9067186f,
-			MaxLongitude = -77.03599990f,
-			MaxLatitude = 38.907734f,
+			MinLongitude = -77.0671918f,
+			MinLatitude = 38.9007186f,
+			MaxLongitude = -77.00099990f,
+			MaxLatitude = 38.98734f,
 		};
 
 		private static Bounds TraceArea = new Bounds()
@@ -65,7 +65,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 			var wayComplete = await client.GetCompleteWay(wayId);
 			var relation = await client.GetRelation(relationId);
 			var relationComplete = await client.GetCompleteRelation(relationId);
-			var nodeVersion = await client.GetNodeVersion(nodeId, 3);
+			var nodeVersion = await client.GetNodeVersion(nodeId, 1);
 			NotNull(node, way, wayComplete, relation, relationComplete, nodeVersion);
 			var nodeHistory = await client.GetNodeHistory(nodeId);
 			var multifetchNodes = await client.GetNodes(new Dictionary<long, long?>() { { nodeId, null }, { nodeId + 1, 1 } });
@@ -73,13 +73,16 @@ namespace OsmSharp.IO.API.FunctionalTests
 			var nodeWays = await client.GetNodeWays(nodeId);
 			var multifetchElements = await client.GetElements(
 				map.Nodes.Select(n => new OsmGeoKey(n)).Concat(map.Ways.Select(n => new OsmGeoKey(n))).ToArray());
-			True(nodeHistory?.Any(), multifetchNodes?.Any(), nodeRelations?.Any(), nodeWays?.Any(), multifetchElements?.Any());
+			True(nodeHistory?.Any(), multifetchNodes?.Any());
+			NotNull(nodeRelations, nodeWays, multifetchElements);
 			var changeset = await client.GetChangeset(node.ChangeSetId.Value);
 			var changesetWithDiscussion = await client.GetChangeset(node.ChangeSetId.Value, true);
 			NotNull(changeset, changesetWithDiscussion?.Discussion);
 			var changesets = await client.QueryChangesets(WashingtonDC, null, null, null, null, false, false, null);
 			True(changesets?.Any());
 			changesets = await client.QueryChangesets(null, node.UserId, null, null, null, false, false, null);
+			True(changesets?.Any());
+			changesets = await client.QueryChangesets(null, node.UserId, null, DateTime.MinValue, null, false, false, null);
 			True(changesets?.Any());
 			changesets = await client.QueryChangesets(null, null, node.UserName, null, null, false, false, null);
 			True(changesets?.Any());

@@ -14,6 +14,7 @@ using System.IO;
 using System.Web;
 using Microsoft.Extensions.Logging;
 using OsmSharp.Db;
+using System.Globalization;
 
 namespace OsmSharp.IO.API
 {
@@ -489,8 +490,8 @@ namespace OsmSharp.IO.API
             if (bounds != null) query["bbox"] = ToString(bounds);
             if (userId.HasValue) query["user"] = userId.ToString();
             if (userName != null) query["display_name"] = userName;
-            if (minClosedDate.HasValue) query["time"] = minClosedDate.ToString();
-            if (maxOpenedDate.HasValue) query.Add("time", maxOpenedDate.ToString());
+            if (minClosedDate.HasValue) query["time"] = FormatNoteDate(minClosedDate.Value);
+            if (maxOpenedDate.HasValue) query.Add("time", FormatNoteDate(maxOpenedDate.Value));
             if (openOnly) query["open"] = "true";
             if (closedOnly) query["closed"] = "true";
             if (ids != null) query["changesets"] = string.Join(",", ids);
@@ -644,7 +645,7 @@ namespace OsmSharp.IO.API
         /// <see href="https://wiki.openstreetmap.org/wiki/API_v0.6#Create_a_new_note:_Create:_POST_.2Fapi.2F0.6.2Fnotes">
         /// POST /api/0.6/notes</see>.
         /// </summary>
-        public async Task<Note> CreateNote(float latitude, float longitude, string text)
+        public async Task<Note> CreateNote(double latitude, double longitude, string text)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
             query["text"] = text;
@@ -681,6 +682,11 @@ namespace OsmSharp.IO.API
         }
 
         protected string ToString(float number)
+        {
+            return number.ToString(OsmMaxPrecision);
+        }
+
+        protected string ToString(double number)
         {
             return number.ToString(OsmMaxPrecision);
         }
