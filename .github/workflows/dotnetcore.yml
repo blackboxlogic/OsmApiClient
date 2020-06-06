@@ -17,7 +17,7 @@ jobs:
 #      with:
 #        dotnet-version: 3.1.101
     - name: Run Unit Test
-      run: dotnet test /home/runner/work/OsmApiClient/OsmSharp.IO.API.Tests/OsmSharp.IO.API.Tests.csproj
+      run: dotnet test /home/runner/work/OsmApiClient/OsmApiClient/OsmSharp.IO.API.Tests/OsmSharp.IO.API.Tests.csproj
     - name: Build Solution
       run: dotnet build --configuration Release
     - name: Nuget Publish
