@@ -32,9 +32,8 @@ namespace OsmSharp.IO.API
 			TokenSecret = tokenSecret;
 		}
 
-		protected override void AddAuthentication(HttpRequestMessage message, string url, string method = "GET")
+		protected override string AddAuthentication(HttpRequestMessage message, string url, string method = "GET")
 		{
-			_logger?.LogInformation($"Adding OAuth v1.0 for ConsumerKey: {ConsumerKey}, Token: {Token}.");
 			var request = new OAuth.OAuthRequest
 			{
 				ConsumerKey = ConsumerKey,
@@ -49,6 +48,7 @@ namespace OsmSharp.IO.API
 			};
 			var auth = request.GetAuthorizationHeader().Replace("OAuth ", "");
             message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("OAuth", auth);
+            return "OAuth authentication";
 		}
 	}
 }

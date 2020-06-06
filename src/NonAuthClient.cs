@@ -659,7 +659,7 @@ namespace OsmSharp.IO.API
         }
         #endregion
 
-        protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
+        protected async Task<IEnumerable<T>> GetOfType<T>(string address, Func<HttpRequestMessage, string> auth = null) where T : class
         {
             var content = await Get(address, auth);
             var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
@@ -694,7 +694,7 @@ namespace OsmSharp.IO.API
         #region Http
         protected static readonly Func<string, string> Encode = HttpUtility.UrlEncode;
 
-        protected async Task<T> Get<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
+        protected async Task<T> Get<T>(string address, Func<HttpRequestMessage, string> auth = null) where T : class
         {
             var content = await Get(address, auth);
             var stream = await content.ReadAsStreamAsync();
@@ -703,14 +703,17 @@ namespace OsmSharp.IO.API
             return element;
         }
 
-        protected async Task<HttpContent> Get(string address, Action<HttpRequestMessage> auth = null)
+        protected async Task<HttpContent> Get(string address, Func<HttpRequestMessage, string> auth = null)
         {
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
             {
-                _logger?.LogInformation($"GET: {address}");
-                auth?.Invoke(request);
+                var authString = auth?.Invoke(request);
+                if (!string.IsNullOrEmpty(authString))
+                {
+                    authString = " " + authString;
+                }
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response);
+                await VerifyAndLogReponse(response, $"GET: {address}{authString}");
                 return response.Content;
             }
         }
@@ -739,36 +742,34 @@ namespace OsmSharp.IO.API
         /// <param name="message"></param>
         /// <param name="url"></param>
         /// <param name="method"></param>
-        protected virtual void AddAuthentication(HttpRequestMessage message, string url, string method = "GET") { }
+        protected virtual string AddAuthentication(HttpRequestMessage message, string url, string method = "GET") { return "No authentication"; }
 
         protected async Task<HttpContent> SendAuthRequest(HttpMethod method, string address, HttpContent requestContent)
         {
             using (HttpRequestMessage request = new HttpRequestMessage(method, address))
             {
-                _logger?.LogInformation($"{method}: {address}");
-                AddAuthentication(request, address, method.ToString());
+                var authString = AddAuthentication(request, address, method.ToString());
                 request.Content = requestContent;
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response);
+                await VerifyAndLogReponse(response, $"{method}: {address} {authString}");
                 return response.Content;
             }
         }
 
-        protected async Task VerifyAndLogReponse(HttpResponseMessage response)
+        protected async Task VerifyAndLogReponse(HttpResponseMessage response, string extraMessage)
         {
+            var formattedExtraMessage = string.IsNullOrWhiteSpace(extraMessage) ? string.Empty : extraMessage + ": ";
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();
-                message = $"Request failed: {response.StatusCode}-{response.ReasonPhrase} {message}";
+                message = $"{formattedExtraMessage}failed: {response.StatusCode}-{response.ReasonPhrase} {message}";
                 _logger?.LogError(message);
                 throw new OsmApiException(response.RequestMessage?.RequestUri, message, response.StatusCode);
             }
             else
             {
-                var message = $"Request succeeded: {response.StatusCode}-{response.ReasonPhrase}";
+                var message = $"{formattedExtraMessage}succeeded";
                 _logger?.LogInformation(message);
-                var headers = string.Join(", ", response.Content.Headers.Select(h => $"{h.Key}: {string.Join(";", h.Value)}"));
-                _logger?.LogDebug(headers);
             }
         }
         #endregion
