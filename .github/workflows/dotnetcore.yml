@@ -9,21 +9,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    ##if: github.event == 'watch' && github.actor == github.event.repository.owner.login #only me
+#     if: github.event == 'watch' && github.actor == github.event.repository.owner.login #only me
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
 #      with:
 #        dotnet-version: 3.1.101
-    - name: Build
+    - name: Run Unit Test
+      run: dotnet test /home/runner/work/OsmApiClient/OsmSharp.IO.API.Tests/OsmSharp.IO.API.Tests.csproj
+    - name: Build Solution
       run: dotnet build --configuration Release
-#    - name: Pack
-#      run: dotnet pack /home/runner/work/OsmApiClient/OsmApiClient/src/OsmApiClient.csproj -o Artifacts
-#    - uses: actions/upload-artifact@v1
-#      with:
-#        name: OsmApiClient.0.0.1-beta.4.nupkg
-#        path: /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
-    - name: Nuget publish
+    - name: Nuget Publish
       run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
 

@@ -31,7 +31,7 @@ namespace OsmSharp.IO.API.FunctionalTests
 				// Test BasicAuth
 				if (!string.IsNullOrEmpty(Config["basicAuth:Password"]))
 				{
-					if (!Config["osmApiUrl"].Contains("dev")) throw new Exception("These tests modify data, and it looks like your running them in PROD, please don't");
+					if (!Config["osmApiUrl"].Contains("dev")) throw new Exception("These tests modify data, and it looks like you're running them in PROD, please don't");
 
 					testsLogger.LogInformation("Testing BasicAuth client");
 					var basicAuth = clientFactory.CreateBasicAuthClient(Config["basicAuth:User"], Config["basicAuth:Password"]);

@@ -707,10 +707,9 @@ namespace OsmSharp.IO.API
         {
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
             {
-                _logger?.LogInformation($"GET: {address}");
                 auth?.Invoke(request);
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response);
+                await VerifyAndLogReponse(response, $"{GetType().Name} GET: {address}");
                 return response.Content;
             }
         }
@@ -745,30 +744,25 @@ namespace OsmSharp.IO.API
         {
             using (HttpRequestMessage request = new HttpRequestMessage(method, address))
             {
-                _logger?.LogInformation($"{method}: {address}");
                 AddAuthentication(request, address, method.ToString());
                 request.Content = requestContent;
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response);
+                await VerifyAndLogReponse(response, $"{GetType().Name} {method}: {address}");
                 return response.Content;
             }
         }
 
-        protected async Task VerifyAndLogReponse(HttpResponseMessage response)
+        protected async Task VerifyAndLogReponse(HttpResponseMessage response, string logMessage)
         {
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();
-                message = $"Request failed: {response.StatusCode}-{response.ReasonPhrase} {message}";
-                _logger?.LogError(message);
+                _logger?.LogError($"{logMessage}: failed: {response.StatusCode}-{response.ReasonPhrase} {message}");
                 throw new OsmApiException(response.RequestMessage?.RequestUri, message, response.StatusCode);
             }
             else
             {
-                var message = $"Request succeeded: {response.StatusCode}-{response.ReasonPhrase}";
-                _logger?.LogInformation(message);
-                var headers = string.Join(", ", response.Content.Headers.Select(h => $"{h.Key}: {string.Join(";", h.Value)}"));
-                _logger?.LogDebug(headers);
+                _logger?.LogInformation($"{logMessage}: succeeded");
             }
         }
         #endregion
