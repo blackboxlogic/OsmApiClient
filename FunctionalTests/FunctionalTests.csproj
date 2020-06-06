@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\OsmApiClient.csproj" />
+    <ProjectReference Include="..\src\OsmSharp.IO.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
