@@ -10,14 +10,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace OsmApiClientTests
+namespace OsmSharp.IO.API.Tests
 {
     [TestClass]
     public class NonAuthTests
     {
         private INonAuthClient client;
 
-        private readonly Bounds WashingtonDC = new Bounds()
+        public static readonly Bounds WashingtonDC = new Bounds()
         {
             MinLongitude = -77.0671918f,
             MinLatitude = 38.9007186f,

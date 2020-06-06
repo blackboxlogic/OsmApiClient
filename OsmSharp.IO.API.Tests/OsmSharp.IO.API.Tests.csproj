@@ -19,4 +19,10 @@
     <ProjectReference Include="..\src\OsmSharp.IO.API.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="test.gpx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
