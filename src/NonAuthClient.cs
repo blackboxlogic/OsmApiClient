@@ -708,12 +708,8 @@ namespace OsmSharp.IO.API
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
             {
                 var authString = auth?.Invoke(request);
-                if (!string.IsNullOrEmpty(authString))
-                {
-                    authString = " " + authString;
-                }
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response, $"GET: {address}{authString}");
+                await VerifyAndLogReponse(response, $"GET: {address} {authString}");
                 return response.Content;
             }
         }
@@ -756,20 +752,17 @@ namespace OsmSharp.IO.API
             }
         }
 
-        protected async Task VerifyAndLogReponse(HttpResponseMessage response, string extraMessage)
+        protected async Task VerifyAndLogReponse(HttpResponseMessage response, string logMessage)
         {
-            var formattedExtraMessage = string.IsNullOrWhiteSpace(extraMessage) ? string.Empty : extraMessage + ": ";
             if (!response.IsSuccessStatusCode)
             {
                 var message = await response.Content.ReadAsStringAsync();
-                message = $"{formattedExtraMessage}failed: {response.StatusCode}-{response.ReasonPhrase} {message}";
-                _logger?.LogError(message);
+                _logger?.LogError($"{logMessage}: failed: {response.StatusCode}-{response.ReasonPhrase} {message}");
                 throw new OsmApiException(response.RequestMessage?.RequestUri, message, response.StatusCode);
             }
             else
             {
-                var message = $"{formattedExtraMessage}succeeded";
-                _logger?.LogInformation(message);
+                _logger?.LogInformation($"{logMessage}: succeeded");
             }
         }
         #endregion
