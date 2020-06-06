@@ -659,7 +659,7 @@ namespace OsmSharp.IO.API
         }
         #endregion
 
-        protected async Task<IEnumerable<T>> GetOfType<T>(string address, Func<HttpRequestMessage, string> auth = null) where T : class
+        protected async Task<IEnumerable<T>> GetOfType<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
         {
             var content = await Get(address, auth);
             var streamSource = new XmlOsmStreamSource(await content.ReadAsStreamAsync());
@@ -694,7 +694,7 @@ namespace OsmSharp.IO.API
         #region Http
         protected static readonly Func<string, string> Encode = HttpUtility.UrlEncode;
 
-        protected async Task<T> Get<T>(string address, Func<HttpRequestMessage, string> auth = null) where T : class
+        protected async Task<T> Get<T>(string address, Action<HttpRequestMessage> auth = null) where T : class
         {
             var content = await Get(address, auth);
             var stream = await content.ReadAsStreamAsync();
@@ -703,13 +703,13 @@ namespace OsmSharp.IO.API
             return element;
         }
 
-        protected async Task<HttpContent> Get(string address, Func<HttpRequestMessage, string> auth = null)
+        protected async Task<HttpContent> Get(string address, Action<HttpRequestMessage> auth = null)
         {
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, address))
             {
-                var authString = auth?.Invoke(request);
+                auth?.Invoke(request);
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response, $"GET: {address} {authString}");
+                await VerifyAndLogReponse(response, $"{GetType().Name} GET: {address}");
                 return response.Content;
             }
         }
@@ -738,16 +738,16 @@ namespace OsmSharp.IO.API
         /// <param name="message"></param>
         /// <param name="url"></param>
         /// <param name="method"></param>
-        protected virtual string AddAuthentication(HttpRequestMessage message, string url, string method = "GET") { return "No authentication"; }
+        protected virtual void AddAuthentication(HttpRequestMessage message, string url, string method = "GET") { }
 
         protected async Task<HttpContent> SendAuthRequest(HttpMethod method, string address, HttpContent requestContent)
         {
             using (HttpRequestMessage request = new HttpRequestMessage(method, address))
             {
-                var authString = AddAuthentication(request, address, method.ToString());
+                AddAuthentication(request, address, method.ToString());
                 request.Content = requestContent;
                 var response = await _httpClient.SendAsync(request);
-                await VerifyAndLogReponse(response, $"{method}: {address} {authString}");
+                await VerifyAndLogReponse(response, $"{GetType().Name} {method}: {address}");
                 return response.Content;
             }
         }
