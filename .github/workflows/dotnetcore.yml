@@ -22,5 +22,8 @@ jobs:
       run: dotnet build --configuration Release
     - name: Nuget Publish
       if: success()
+      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
+    - name: Nuget Publish Symbols
+      if: success()
       run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.snupkg
 
