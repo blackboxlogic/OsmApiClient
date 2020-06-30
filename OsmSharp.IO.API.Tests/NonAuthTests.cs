@@ -155,6 +155,8 @@ namespace OsmSharp.IO.API.Tests
             Assert.IsTrue(changesets.Any());
             changesets = await client.QueryChangesets(null, node.UserId, null, DateTime.MinValue, null, false, false, null);
             Assert.IsTrue(changesets.Any());
+            changesets = await client.QueryChangesets(null, node.UserId, null, DateTime.MinValue, DateTime.UtcNow, false, false, null);
+            Assert.IsTrue(changesets.Any());
             changesets = await client.QueryChangesets(null, null, node.UserName, null, null, false, false, null);
             Assert.IsTrue(changesets.Any());
             changesets = await client.QueryChangesets(null, null, null, null, null, false, false, new long[] { 151176, 151177 });

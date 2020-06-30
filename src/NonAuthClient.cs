@@ -491,7 +491,7 @@ namespace OsmSharp.IO.API
             if (userId.HasValue) query["user"] = userId.ToString();
             if (userName != null) query["display_name"] = userName;
             if (minClosedDate.HasValue) query["time"] = FormatNoteDate(minClosedDate.Value);
-            if (maxOpenedDate.HasValue) query.Add("time", FormatNoteDate(maxOpenedDate.Value));
+            if (maxOpenedDate.HasValue) query["time"] += "," + FormatNoteDate(maxOpenedDate.Value);
             if (openOnly) query["open"] = "true";
             if (closedOnly) query["closed"] = "true";
             if (ids != null) query["changesets"] = string.Join(",", ids);
