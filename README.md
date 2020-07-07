@@ -28,9 +28,9 @@ var node = await client.GetNode(100);
 ```c#
 var authClient = clientFactory.CreateBasicAuthClient("username", "password");
 var changeSetTags = new TagsCollection() { new Tag("comment", "Deleting a node.") };
-var changeSetId = await client.CreateChangeset(changeSetTags);
-node.Version = await client.DeleteElement(changeSetId, node);
-await client.CloseChangeset(changeSetId);
+var changeSetId = await authClient.CreateChangeset(changeSetTags);
+node.Version = await authClient.DeleteElement(changeSetId, node);
+await authClient.CloseChangeset(changeSetId);
 ```
 
 See the [functional tests](https://github.com/blackboxlogic/OsmApiClient/blob/master/FunctionalTests/Tests.cs) for examples of each operation.
