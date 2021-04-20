@@ -14,9 +14,9 @@ namespace OsmSharp.IO.API
 			}
 
 			if (bounds.MinLongitude < -180 || bounds.MinLongitude > 180
-				|| bounds.MinLatitude < -180 || bounds.MinLatitude > 180
+				|| bounds.MinLatitude < -90 || bounds.MinLatitude > 90
 				|| bounds.MaxLongitude < -180 || bounds.MaxLongitude > 180
-				|| bounds.MaxLatitude < -180 || bounds.MaxLatitude > 180
+				|| bounds.MaxLatitude < -90 || bounds.MaxLatitude > 90
 				|| bounds.MinLatitude >= bounds.MaxLatitude)
 			{
 				throw new ArgumentException("Those Bounds are not valid.");
