@@ -33,7 +33,7 @@ node.Version = await client.DeleteElement(changeSetId, node);
 await client.CloseChangeset(changeSetId);
 ```
 
-See the [functional tests](https://github.com/blackboxlogic/OsmApiClient/blob/master/FunctionalTests/Tests.cs) for examples of each operation.
+See the [functional tests](https://github.com/blackboxlogic/OsmApiClient/tree/master/OsmSharp.IO.API.Tests) for examples of each operation.
 
 # Supported Operations
 
