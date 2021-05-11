@@ -670,25 +670,25 @@ namespace OsmSharp.IO.API
         protected string ToString(Bounds bounds)
         {
             StringBuilder x = new StringBuilder();
-            x.Append(bounds.MinLongitude.Value.ToString(OsmMaxPrecision));
+            x.Append(bounds.MinLongitude.Value.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture));
             x.Append(',');
-            x.Append(bounds.MinLatitude.Value.ToString(OsmMaxPrecision));
+            x.Append(bounds.MinLatitude.Value.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture));
             x.Append(',');
-            x.Append(bounds.MaxLongitude.Value.ToString(OsmMaxPrecision));
+            x.Append(bounds.MaxLongitude.Value.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture));
             x.Append(',');
-            x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision));
+            x.Append(bounds.MaxLatitude.Value.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture));
 
             return x.ToString();
         }
 
         protected string ToString(float number)
         {
-            return number.ToString(OsmMaxPrecision);
+            return number.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture);
         }
 
         protected string ToString(double number)
         {
-            return number.ToString(OsmMaxPrecision);
+            return number.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture);
         }
 
         #region Http
