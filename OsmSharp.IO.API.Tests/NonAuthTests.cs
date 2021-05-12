@@ -215,23 +215,15 @@ namespace OsmSharp.IO.API.Tests
 
             var cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
 
-            var type = client.GetType();
-            const BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
-            var methodBounds = type
-                .GetMethod("ToString", bindingFlags, Type.DefaultBinder, new[] {typeof(Bounds)}, null);
-            var methodFloat = type
-                .GetMethod("ToString", bindingFlags, Type.DefaultBinder, new[] {typeof(float)}, null);
-            var methodDouble = type.
-                GetMethod("ToString", bindingFlags, Type.DefaultBinder, new[] {typeof(double)}, null);
-
+            var clientAsChild = client as NonAuthClient;
             foreach (var culture in cultures)
             {
                 Thread.CurrentThread.CurrentCulture = culture;
-                var boundsValue = methodBounds?.Invoke(client, new object[] {WashingtonDC});
+                var boundsValue = clientAsChild.ToString(WashingtonDC);
                 Assert.AreEqual(washingtonString, boundsValue);
-                var floatValue = methodFloat?.Invoke(client, new object[] {WashingtonDC.MinLongitude});
+                var floatValue = clientAsChild.ToString(WashingtonDC.MinLongitude.Value);
                 Assert.AreEqual(floatString, floatValue);
-                var doubleValue = methodDouble?.Invoke(client, new object[] {(double) WashingtonDC.MinLongitude});
+                var doubleValue = clientAsChild.ToString((double)WashingtonDC.MinLongitude);
                 Assert.AreEqual(doubleString, doubleValue);
             }
         }

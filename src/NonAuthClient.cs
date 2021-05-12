@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using OsmSharp.Changesets;
 using System.Text;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Web;
 using Microsoft.Extensions.Logging;
@@ -667,7 +668,8 @@ namespace OsmSharp.IO.API
             return elements;
         }
 
-        protected string ToString(Bounds bounds)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string ToString(Bounds bounds)
         {
             StringBuilder x = new StringBuilder();
             x.Append(bounds.MinLongitude.Value.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture));
@@ -681,12 +683,14 @@ namespace OsmSharp.IO.API
             return x.ToString();
         }
 
-        protected string ToString(float number)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string ToString(float number)
         {
             return number.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture);
         }
 
-        protected string ToString(double number)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string ToString(double number)
         {
             return number.ToString(OsmMaxPrecision, CultureInfo.InvariantCulture);
         }
