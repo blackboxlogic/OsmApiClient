@@ -3,9 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>OsmApiClient</PackageId>
-    <Version>0.0.6</Version>
+    <Version>0.0.7</Version>
     <RepositoryUrl>https://github.com/blackboxlogic/OsmApiClient</RepositoryUrl>
-    <PackageReleaseNotes>Fixed bug in changeset query by timerange.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed latitude validation range.
+Fixed failures when host computer culture uses commas for decimals.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/blackboxlogic/OsmApiClient</PackageProjectUrl>
     <Description>This is a simple C# client to allow using OSM API.</Description>
     <PackageTags>osm;openstreetmap;client</PackageTags>

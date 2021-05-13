@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -207,15 +206,15 @@ namespace OsmSharp.IO.API.Tests
         }
 
         [TestMethod]
-        public void TestToStringMethods()
+        public void TestToStringCulture()
         {
             const string washingtonString = "-77.06719,38.90072,-77.001,38.98734";
             const string floatString = "-77.06719";
             const string doubleString = "-77.06719208";
 
             var cultures = CultureInfo.GetCultures(CultureTypes.AllCultures);
-
             var clientAsChild = client as NonAuthClient;
+
             foreach (var culture in cultures)
             {
                 Thread.CurrentThread.CurrentCulture = culture;
