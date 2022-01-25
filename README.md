@@ -13,7 +13,7 @@ Pull requests are welcome. You will need VisualStudio or VS Code to modify this 
 
 # Example Usage
 ```c#
-// Create a client factory
+// Create a client factory (pointing at the dev server)
 var clientFactory = new ClientsFactory(null, new HttpClient(),
 	"https://master.apis.dev.openstreetmap.org/api/");
 ```
