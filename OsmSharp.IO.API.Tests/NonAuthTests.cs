@@ -56,7 +56,7 @@ namespace OsmSharp.IO.API.Tests
         {
             using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
             var logger = loggerFactory.CreateLogger("Tests");
-            var clientFactory = new ClientsFactory(logger, new HttpClient(), "https://www.openstreetmap.org/api/");
+            var clientFactory = new ClientsFactory(logger, new HttpClient(), ClientsFactory.DEVELOPMENT_URL);
             client = clientFactory.CreateNonAuthClient();
         }
 
