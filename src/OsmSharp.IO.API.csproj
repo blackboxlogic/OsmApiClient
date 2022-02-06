@@ -30,4 +30,10 @@ Fixed failures when host computer culture uses commas for decimals.</PackageRele
     <PackageReference Include="OsmSharp" Version="7.0.0-pre014" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Overpass\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Overpass\" />
+  </ItemGroup>
 </Project>

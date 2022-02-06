@@ -41,7 +41,7 @@ namespace OsmSharp.IO.API.Tests
             client = clientFactory.CreateBasicAuthClient("user-email", "password");
             //client = clientFactory.CreateOAuthClient("customerkey", "customerSecret", "token", "tokenSecret");
         }
-
+        
         [TestMethod]
         public async Task TestChangesetLifeCycle()
         {

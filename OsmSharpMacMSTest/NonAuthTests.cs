@@ -18,10 +18,10 @@ namespace OsmSharp.IO.API.Tests
 
         public static readonly Bounds WashingtonDC = new Bounds()
         {
-            MinLatitude = 57.69379f,
-            MinLongitude = 11.90072f,
-            MaxLatitude = 57.7118f,
-            MaxLongitude = 11.93443f
+            MinLongitude = -77.0671918f,
+            MinLatitude = 38.9007186f,
+            MaxLongitude = -77.00099990f,
+            MaxLatitude = 38.98734f
         };
 
         private readonly Bounds TraceArea = new Bounds()
@@ -56,7 +56,7 @@ namespace OsmSharp.IO.API.Tests
         {
             using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
             var logger = loggerFactory.CreateLogger("Tests");
-            var clientFactory = new ClientsFactory(logger, new HttpClient(), "https://www.openstreetmap.org/api/");
+            var clientFactory = new ClientsFactory(logger, new HttpClient(), "https://master.apis.dev.openstreetmap.org/api/");
             client = clientFactory.CreateNonAuthClient();
         }
 

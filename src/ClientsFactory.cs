@@ -37,5 +37,10 @@ namespace OsmSharp.IO.API
         {
             return new OAuthClient(_httpClient, _logger, _baseAddress, consumerKey, consumerSecret, token, tokenSecret);
         }
+
+        public OverpassClient CreateOverpassClient()
+        {
+            return new OverpassClient();
+        }
     }
 }

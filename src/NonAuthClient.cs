@@ -83,7 +83,7 @@ namespace OsmSharp.IO.API
         {
             Validate.BoundLimits(bounds);
             var address = BaseAddress + $"0.6/map?bbox={ToString(bounds)}";
-
+            Console.WriteLine(address);
             return await Get<Osm>(address);
         }
 
