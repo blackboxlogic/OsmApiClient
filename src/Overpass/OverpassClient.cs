@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-
+using System.Xml.Serialization;
 namespace OsmSharp.IO.API.Overpass
 {
     public class OverpassClient
@@ -16,7 +16,7 @@ namespace OsmSharp.IO.API.Overpass
 
         HttpClient Client { get; } = new HttpClient();
 
-        public Task<string> RequestJsonAsync(string overpassQuery)
+        public async Task<T> Request<T>(string overpassQuery) where T : OsmGeo
         {
 
             var baseUrl = BaseUrls.GetEnumerator().Current;
@@ -25,8 +25,8 @@ namespace OsmSharp.IO.API.Overpass
 
             try
             {
-                var json = Client.GetStringAsync(url);
-                return json;
+                var json = await Client.GetStringAsync(url);
+                return Deserialize<T>(json);
             }
             catch(Exception exc)
             {
@@ -37,9 +37,14 @@ namespace OsmSharp.IO.API.Overpass
                     return null;
                 }
 
-                return RequestJsonAsync(overpassQuery);
+                return await Request<T>(overpassQuery);
             }
 
+        }
+
+        T Deserialize<T>(string json) where T : OsmGeo
+        {
+            var serializer = new XmlSerializer(typeof(T));
         }
     }
 }

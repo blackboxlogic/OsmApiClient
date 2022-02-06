@@ -7,7 +7,7 @@ using OsmSharp.API;
 
 namespace OsmSharp.IO.API.Overpass
 {
-    public class OsmQuery
+    public class OverpassQuery
     {
         
 
@@ -21,7 +21,7 @@ namespace OsmSharp.IO.API.Overpass
 
         private Bounds Bounds { get; }
 
-        protected OsmQuery(Bounds bounds, int timeout)
+        protected OverpassQuery(Bounds bounds, int timeout)
         {
             var url = "https://overpass-api.de/api/interpreter";
 
@@ -35,7 +35,7 @@ namespace OsmSharp.IO.API.Overpass
             
         }
 
-        public OsmQuery Add(string key, string value = null)
+        public OverpassQuery Add(string key, string value = null)
         {
             Nodes?.Add(new KeyValuePair<string, string>(key, value));
             Ways?.Add(new KeyValuePair<string, string>(key, value));
@@ -44,9 +44,9 @@ namespace OsmSharp.IO.API.Overpass
             return this;
         }
 
-        public static OsmQuery ForNodes(Bounds bounds, int timeout)
+        public static OverpassQuery ForNodes(Bounds bounds, int timeout)
         {
-            var osmQuery = new OsmQuery(bounds, timeout);
+            var osmQuery = new OverpassQuery(bounds, timeout);
 
             Nodes = new List<KeyValuePair<string, string>>();
             osmQuery.OverpassUrl += "(node";
@@ -69,7 +69,7 @@ namespace OsmSharp.IO.API.Overpass
         */
 
         // make generic 'T'
-        public Task<Node> Request()
+        public string Create()
         {
             OverpassUrl += ToOverpassString(Nodes);
             OverpassUrl += ToOverpassString(Bounds);
@@ -79,11 +79,7 @@ namespace OsmSharp.IO.API.Overpass
             Console.WriteLine("request url...");
             Console.Write(OverpassUrl);
 
-            HttpClient client = new HttpClient();
-
-            //var s = await client.GetStringAsync(OverpassUrl).
-
-            return null;
+            return OverpassUrl;
         }
 
 
