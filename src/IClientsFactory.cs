@@ -27,5 +27,12 @@
         /// <param name="tokenSecret"></param>
         /// <returns></returns>
         IAuthClient CreateOAuthClient(string consumerKey, string consumerSecret, string token, string tokenSecret);
+
+        /// <summary>
+        /// Creates a client that will use OAuth 2.0 credentials provided from the OAuth OSM page
+        /// </summary>
+        /// <param name="token">The token that you got after getting the code and posting it to the token server</param>
+        /// <returns></returns>
+        IAuthClient CreateOAuth2Client(string token);
     }
 }

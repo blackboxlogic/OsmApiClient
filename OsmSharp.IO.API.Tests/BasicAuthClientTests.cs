@@ -36,10 +36,11 @@ namespace OsmSharp.IO.API.Tests
         {
             using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
             var logger = loggerFactory.CreateLogger("Tests");
-            var clientFactory = new ClientsFactory(logger, new HttpClient(), ClientsFactory.DEVELOPMENT_URL);
+            IClientsFactory clientFactory = new ClientsFactory(logger, new HttpClient(), ClientsFactory.DEVELOPMENT_URL);
             // Enter your user name and password here or OAuth credential below - do not check-in!
             client = clientFactory.CreateBasicAuthClient("user-email", "password");
             //client = clientFactory.CreateOAuthClient("customerkey", "customerSecret", "token", "tokenSecret");
+            //client = clientFactory.CreateOAuth2Client("token");
         }
 
         [TestMethod]

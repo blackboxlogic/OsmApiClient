@@ -23,7 +23,7 @@ namespace OsmSharp.IO.API
         /// <param name="baseAddress">The base address for the OSM API (for example: 'https://www.openstreetmap.org/api/0.6/')</param>
         /// <param name="httpClient">An HttpClient</param>
         /// <param name="logger">For logging out details of requests. Optional.</param>
-        public AuthClient(string baseAddress, HttpClient httpClient, ILogger logger = null)
+        protected AuthClient(string baseAddress, HttpClient httpClient, ILogger logger = null)
             : base(baseAddress, httpClient, logger)
         { }
 
@@ -286,7 +286,7 @@ namespace OsmSharp.IO.API
         }
         #endregion
 
-        protected Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
+        private Osm GetOsmRequest(long changesetId, OsmGeo osmGeo)
         {
             osmGeo.ChangeSetId = changesetId;
             var osm = new Osm();
