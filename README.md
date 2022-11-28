@@ -6,8 +6,8 @@ Pull requests are welcome. You will need VisualStudio or VS Code to modify this 
 
 ### Features
 - Supports Logging using ILogger
-- Supports BasicAuth and OAuth
-- Supports every operation of the Osm Api v0.6
+- Supports BasicAuth, OAuth 1 and OAuth 2
+- Supports every documented operation of the Osm Api v0.6
 - Has a [nuget package](https://www.nuget.org/packages/OsmApiClient)
 - Is thread safe
 
