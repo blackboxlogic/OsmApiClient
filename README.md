@@ -1,4 +1,3 @@
-![Build is](https://github.com/blackboxlogic/OsmApiClient/workflows/.NET%20Core/badge.svg?branch=master)
 # OsmApiClient
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
 Please read the API's documentation and use it responsibly. Misuse can have an adverse affect on the OSM ecosystem.
@@ -13,6 +12,7 @@ Pull requests are welcome. You will need VisualStudio or VS Code to modify this 
 
 # Example Usage
 ```c#
+using OsmSharp.IO.API;
 // Create a client factory (pointing at the dev server)
 var clientFactory = new ClientsFactory(null, new HttpClient(),
 	"https://master.apis.dev.openstreetmap.org/api/");
