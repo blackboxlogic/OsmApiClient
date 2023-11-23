@@ -1,29 +1,30 @@
-# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
-name: Build-Pack-Publish
-on:
-#  watch:
-#    types: [started]
-  push:
-    branches:
-      - master
-jobs:
-  build:
-    runs-on: ubuntu-latest
-#     if: github.event == 'watch' && github.actor == github.event.repository.owner.login #only me
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-#      with:
-#        dotnet-version: 3.1.101
-    - name: Run Unit Test
-      run: dotnet test /home/runner/work/OsmApiClient/OsmApiClient/OsmSharp.IO.API.Tests/OsmSharp.IO.API.Tests.csproj
-    - name: Build Solution
-      run: dotnet build --configuration Release
-    - name: Nuget Publish
-      if: success()
-      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
-    - name: Nuget Publish Symbols
-      if: success()
-      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.snupkg --skip-duplicate
-
+## https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#name: Build-Pack-Publish
+#on:
+##  watch:
+##    types: [started]
+#  push:
+#    branches:
+#      - master
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+##     if: github.event == 'watch' && github.actor == github.event.repository.owner.login #only me
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Setup .NET Core
+#      uses: actions/setup-dotnet@v1
+##      with:
+##        dotnet-version: 3.1.101
+#    - name: Run Unit Test
+#      run: dotnet test /home/runner/work/OsmApiClient/OsmApiClient/OsmSharp.IO.API.Tests/OsmSharp.IO.API.Tests.csproj
+#    - name: Build Solution
+#      run: dotnet build --configuration Release
+#    - name: Nuget Publish
+#      if: success()
+#      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.nupkg
+#    - name: Nuget Publish Symbols
+#      if: success()
+#      run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NugetApiKey}} /home/runner/work/OsmApiClient/OsmApiClient/src/bin/Release/*.snupkg --skip-duplicate
+#
+#

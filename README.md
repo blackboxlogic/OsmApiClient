@@ -1,3 +1,8 @@
+# DEPRECATED
+Development has moved to https://github.com/OsmSharp/io-api
+
+---
+
 # OsmApiClient
 This is a simple C# client to allow using [OSM API](https://wiki.openstreetmap.org/wiki/API_v0.6) easily.
 Please read the API's documentation and use it responsibly. Misuse can have an adverse affect on the OSM ecosystem.

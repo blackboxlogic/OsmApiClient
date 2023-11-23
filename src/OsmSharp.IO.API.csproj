@@ -5,10 +5,9 @@
     <PackageId>OsmApiClient</PackageId>
     <Version>0.0.8</Version>
     <RepositoryUrl>https://github.com/blackboxlogic/OsmApiClient</RepositoryUrl>
-    <PackageReleaseNotes>Fixed latitude validation range.
-Fixed failures when host computer culture uses commas for decimals.</PackageReleaseNotes>
+    <PackageReleaseNotes>Deprecating this package, it has relocated to package "OsmSharp.IO.API".</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/blackboxlogic/OsmApiClient</PackageProjectUrl>
-    <Description>This is a simple C# client to allow using OSM API.</Description>
+    <Description>DEPRECATED, use "https://github.com/OsmSharp/io-api" instead. This was a simple C# client to allow using OSM API.</Description>
     <PackageTags>osm;openstreetmap;client</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
